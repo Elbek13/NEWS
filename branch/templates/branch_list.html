@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <!-- Navbar -->
+    <nav
+            class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl"
+            id="navbarBlur"
+            data-scroll="false"
+    >
+        <div class="container-fluid py-1 px-3 pt-0">
+            <nav aria-label="breadcrumb">
+                <ol
+                        class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5"
+                >
+                    <li class="breadcrumb-item text-sm">
+                        <a class="opacity-5 text-white" href="{% url 'dashboard' %}">Bosh Sahifa</a>
+                    </li>
+                    <li
+                            class="breadcrumb-item text-sm text-white active"
+                            aria-current="page"
+                    >
+                        Filallar
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </nav>
+    <main class="main-content position-relative border-radius-lg">
+        <div class="container-fluid py-4">
+            <!-- Notification -->
+            {% if success_message %}
+                <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ success_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <script>
+                    setTimeout(function () {
+                        document.getElementById("successAlert").style.display = "none";
+                    }, 3000);
+                </script>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mb-4">
+                        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                            <h6>Filiallar Ro‘yxati</h6>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#addFilialModal">
+                                Yangi Filial Qo‘shish
+                            </button>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="mx-3">
+                                <label for="limitSelect"></label><select id="limitSelect"
+                                                                         class="form-select w-150 pe-5  d-inline-block">
+                                <option value="10" {% if request.GET.limit == "10" %}selected{% endif %}>10</option>
+                                <option value="20" {% if request.GET.limit == "20" %}selected{% endif %}>20</option>
+                                <option value="30" {% if request.GET.limit == "30" %}selected{% endif %}>30</option>
+                            </select>
+                            </div>
+                            <div style="width: 200px!important; height: 50px!important;"><label
+                                    for="searchInput"></label><input type="text" id="searchInput"
+                                                                     class="form-control w-85 me-4"
+                                                                     placeholder="Qidirish..."></div>
+                        </div>
+                        <div class="card-body px-0 pt-0 pb-2">
+                            <div class="table-responsive p-0">
+                                <table class="table align-items-center justify-content-center mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                            Filial nomi
+                                        </th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                            Yaratilgan vaqti
+                                        </th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder text-center opacity-7 ps-2">
+                                            Tahrirlash
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for branch in branches %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex px-2">
+                                                    <div>
+                                                        <img src="{% static 'assets/img/small-logos/logo-jira.svg' %}"
+                                                             class="avatar avatar-sm rounded-circle me-2" alt="filial">
+                                                    </div>
+                                                    <div class="my-auto">
+                                                        <h6 class="mb-0 text-sm">{{ branch.name }}</h6>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <p class="text-sm font-weight-bold mb-0">{{ branch.created_at }}</p>
+                                            </td>
+                                            <td class="align-middle text-center">
+                                                <button class="btn btn-warning" data-bs-toggle="modal"
+                                                        data-bs-target="#editFilialModal{{ branch.id }}">
+                                                    Tahrirlash
+                                                </button>
+                                                <button class="btn btn-danger" data-bs-toggle="modal"
+                                                        data-bs-target="#deleteFilialModal{{ branch.id }}">
+                                                    O‘chirish
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <!-- Tahrirlash Modal -->
+                                        <div class="modal fade" id="editFilialModal{{ branch.id }}" tabindex="-1"
+                                             aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Filialni Tahrirlash</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form method="POST" action="{% url 'branch_edit' branch.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Filial nomi</label>
+                                                                <label>
+                                                                    <input type="text" class="form-control" name="name"
+                                                                           value="{{ branch.name }}" required>
+                                                                </label>
+                                                            </div>
+                                                            <button type="submit" class="btn btn-success">Saqlash
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- O‘chirish Modal -->
+                                        <div class="modal fade" id="deleteFilialModal{{ branch.id }}" tabindex="-1"
+                                             aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Filialni O‘chirish</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Haqiqatan ham "{{ branch.name }}" filialini
+                                                            o‘chirmoqchimisiz?</p>
+                                                        <form method="POST"
+                                                              action="{% url 'branch_delete' branch.id %}">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-danger">O‘chirish
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">Hozircha filiallar mavjud
+                                                emas
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item {% if not branches.has_previous %}disabled{% endif %}">
+                                        <a class="page-link"
+                                           href="{% if branches.has_previous %}?page={{ branches.previous_page_number }}&limit=
+                                               {{ request.GET.limit }}{% else %}#{% endif %}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                    {% for num in branches.paginator.page_range %}
+                                        <li class="page-item {% if branches.number == num %}active{% endif %}">
+                                            <a class="page-link text-primary font-weight-bold"
+                                               href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="page-item {% if not branches.has_next %}disabled{% endif %}">
+                                        <a class="page-link"
+                                           href="{% if branches.has_next %}?page={{ branches.next_page_number }}&limit=
+                                               {{ request.GET.limit }}{% else %}#{% endif %}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+
+
+
+
+    <!-- Filial qo'shish uchun Modal -->
+    <div class="modal fade" id="addFilialModal" tabindex="-1" aria-labelledby="addFilialModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addFilialModalLabel">Yangi Filial Qo‘shish</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'branch_create' %}" id="branchForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="branchName" class="form-label">Filial nomi</label>
+                            <input type="text" class="form-control" id="branchName" name="name" required>
+                            <div class="invalid-feedback">Bu nom allaqachon mavjud!</div>
+                        </div>
+                        <button type="submit" class="btn btn-success">Qo‘shish</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Qidiruv funksiyasi
+
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            let searchText = this.value.toLowerCase();
+            let rows = document.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                let branchNameElement = row.querySelector('.my-auto h6');
+
+                if (branchNameElement) {
+                    let branchName = branchNameElement.textContent.toLowerCase();
+                    if (branchName.includes(searchText)) {
+                        row.style.display = '';  // Ko‘rsatish
+                    } else {
+                        row.style.display = 'none';  // Yashirish
+                    }
+                }
+            });
+        });
+
+
+        // Limitni o'zgartirishda sahifani yangilash
+        document.getElementById('limitSelect').addEventListener('change', function () {
+            let selectedLimit = this.value;
+            let url = new URL(window.location.href);
+            url.searchParams.set('limit', selectedLimit);
+            url.searchParams.set('page', 1); // 1-sahifaga qaytarish
+            window.location.href = url.toString();
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            const branchInput = document.getElementById("branchName");
+            const existingBranches = [{% for branch in branches %}"{{ branch.name|escapejs }}",{% endfor %}];
+
+            branchInput.addEventListener("input", function () {
+                if (existingBranches.includes(branchInput.value.trim())) {
+                    branchInput.classList.add("is-invalid");
+                } else {
+                    branchInput.classList.remove("is-invalid");
+                }
+            });
+        });
+    </script>
+
+
+
+{% endblock %}

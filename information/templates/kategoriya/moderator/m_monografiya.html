@@ -1,0 +1,569 @@
+{% extends 'm_base.html' %}
+{% block content %}
+    {% load static %}
+    <!-- Navbar -->
+    <nav
+            class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl"
+            id="navbarBlur"
+            data-scroll="false"
+    >
+        <div class="container-fluid py-1 px-3 pt-0">
+            <nav aria-label="breadcrumb">
+                <ol
+                        class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5"
+                >
+                    <li class="breadcrumb-item text-sm">
+                        <a class="opacity-5 text-white" href="{% url 'm_category_list' %}">Ketegoriyalar</a>
+                    </li>
+                    <li
+                            class="breadcrumb-item text-sm text-white active"
+                            aria-current="page"
+                    >
+                        Monografiyalar
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </nav>
+
+    <main class="main-content position-relative border-radius-lg">
+        <div class="row">
+            <div class="col-12 responsive-div">
+                <!-- Notification -->
+                {% if success_message %}
+                    <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ success_message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <script>
+                        setTimeout(function () {
+                            document.getElementById("successAlert").style.display = "none";
+                        }, 3000);
+                    </script>
+                {% endif %}
+                <div class="card mb-4 mt-4 mx-3">
+                    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                        <h6>Monografiyalar Ro‘yxati</h6>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#addMonografiyaModal">
+                            Yangi Monografiya Qo‘shish
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mx-3 my-2">
+                        <div>
+                            <select id="limitSelect" class="form-select w-150 pe-5 d-inline-block">
+                                <option value="10" {% if request.GET.limit == "10" %}selected{% endif %}>10</option>
+                                <option value="20" {% if request.GET.limit == "20" %}selected{% endif %}>20</option>
+                                <option value="30" {% if request.GET.limit == "30" %}selected{% endif %}>30</option>
+                            </select>
+                        </div>
+                        <label for="searchInput"></label><input type="text" id="searchInput"
+                                                                class="form-control w-15 me-1"
+                                                                placeholder="Qidirish...">
+                    </div>
+
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table id="monografiyaTable" class="table align-items-center justify-content-center mb-0">
+                                <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                        Mavzu
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Muallif
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Muassasa Nomi
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Nashr Yili
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Daraja
+                                    </th>
+                                    <th class="text-uppercase px-5 text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Harakatlar
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for monografiya in monografiyalar %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex px-2">
+                                                <div class="my-auto">
+                                                    <h6 class="mb-0 mx-3 text-sm">{{ monografiya.title }}</h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <p class="text-sm font-weight-bold mb-0">{{ monografiya.author }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-sm font-weight-bold mb-0">{{ monografiya.institution_name }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-sm font-weight-bold mb-0">{{ monografiya.publication_year|default:"--" }}</p>
+                                        </td>
+                                        <td>
+                                            <span class="text-xs font-weight-bold">
+                                                {{ monografiya.get_degree_display|default:"--" }}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                                    data-bs-target="#editMonografiyaModal{{ monografiya.id }}">
+                                                Tahrirlash
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                                    data-bs-target="#deleteMonografiyaModal{{ monografiya.id }}">
+                                                O‘chirish
+                                            </button>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#monografiyaModal{{ monografiya.id }}">
+                                                <i class="fas fa-eye me-1"></i> Ko‘rish
+                                            </button>
+                                        </td>
+                                    </tr>
+
+
+                                    <!-- Tahrirlash Modal -->
+                                    <div class="modal fade" id="editMonografiyaModal{{ monografiya.id }}"
+                                         tabindex="-1" aria-labelledby="editMonografiyaModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white d-flex justify-content-center">
+                                                    <h5 class="modal-title text-center">Monografiyani Tahrirlash</h5>
+                                                </div>
+                                                <div class="modal-body p-4">
+                                                    <form method="POST"
+                                                          action="{% url 'm_monografiya_edit' monografiya.id %}"
+                                                          enctype="multipart/form-data">
+                                                        {% csrf_token %}
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label for="title"
+                                                                       class="form-label fw-bold">Mavzu</label>
+                                                                <input type="text" class="form-control" id="title"
+                                                                       name="title" value="{{ monografiya.title }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="author"
+                                                                       class="form-label fw-bold">Muallif</label>
+                                                                <input type="text" class="form-control" id="author"
+                                                                       name="author" value="{{ monografiya.author }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="institution_name"
+                                                                       class="form-label fw-bold">Muassasa Nomi</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="institution_name" name="institution_name"
+                                                                       value="{{ monografiya.institution_name }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="keywords" class="form-label fw-bold">Kalit
+                                                                    So‘zlar</label>
+                                                                <input type="text" class="form-control" id="keywords"
+                                                                       name="keywords"
+                                                                       value="{{ monografiya.keywords }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="publication_type"
+                                                                       class="form-label fw-bold">Nashr Turi</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="publication_type" name="publication_type"
+                                                                       value="{{ monografiya.publication_type }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="publication_year"
+                                                                       class="form-label fw-bold">Nashr Yili</label>
+                                                                <input type="number" class="form-control"
+                                                                       id="publication_year" name="publication_year"
+                                                                       value="{{ monografiya.publication_year }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="description" class="form-label fw-bold">Ilm-fan
+                                                                    yo‘nalishi</label>
+                                                                <textarea class="form-control" id="description"
+                                                                          name="description"
+                                                                          rows="3">{{ monografiya.description }}</textarea>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="content_type" class="form-label fw-bold">Anotatsiya</label>
+                                                                <textarea class="form-control" id="content_type"
+                                                                          name="content_type"
+                                                                          rows="3">{{ monografiya.content_type }}</textarea>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="degree"
+                                                                       class="form-label fw-bold">Daraja</label>
+                                                                <select class="form-select" id="degree" name="degree">
+                                                                    <option value="">Tanlanmagan</option>
+                                                                    {% for key, value in monografiya.DEGREE_CHOICES %}
+                                                                        <option value="{{ key }}"
+                                                                                {% if monografiya.degree == key %}selected{% endif %}>{{ value }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="branch"
+                                                                       class="form-label fw-bold">Filial</label>
+                                                                <select class="form-select" id="branch" name="branch">
+                                                                    <option value="">Tanlanmagan</option>
+                                                                    {% for branch in branches %}
+                                                                        <option value="{{ branch.id }}"
+                                                                                {% if monografiya.branch and monografiya.branch.id == branch.id %}selected{% endif %}>{{ branch.name }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="issn_isbn" class="form-label fw-bold">ISSN/ISBN</label>
+                                                                <input type="text" class="form-control" id="issn_isbn"
+                                                                       name="issn_isbn"
+                                                                       value="{{ monografiya.issn_isbn }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="id_file" class="form-label fw-bold">Monografiya
+                                                                    Fayli</label>
+                                                                <input type="file" class="form-control" id="id_file"
+                                                                       name="file">
+                                                                {% if monografiya.file %}
+                                                                    <small class="text-muted">
+                                                                        <a href="{{ monografiya.file.url }}"
+                                                                           target="_blank" download>Hozirgi faylni
+                                                                            yuklab olish</a>
+                                                                    </small>
+                                                                {% endif %}
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="image" class="form-label fw-bold">Monografiya
+                                                                    Rasmi</label>
+                                                                <input type="file" class="form-control" id="image"
+                                                                       name="image">
+                                                                {% if monografiya.image %}
+                                                                    <div class="mt-2">
+                                                                        <img src="{{ monografiya.image.url }}"
+                                                                             alt="Monografiya Rasmi"
+                                                                             class="img-thumbnail" width="150">
+                                                                        <small class="form-text text-muted">
+                                                                            <a href="{{ monografiya.image.url }}"
+                                                                               target="_blank" download>Hozirgi rasmni
+                                                                                yuklab olish</a>
+                                                                        </small>
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="additional_field"
+                                                                       class="form-label fw-bold">Qo‘shimcha
+                                                                    Maydon</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="additional_field" name="additional_field"
+                                                                       value="{{ monografiya.additional_field }}">
+                                                            </div>
+                                                        </div>
+                                                        <div class="d-flex justify-content-end mt-4">
+                                                            <button type="submit"
+                                                                    class="btn btn-success px-4 py-2 fw-bold">Saqlash
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Modal oynasi -->
+                                    <div class="modal fade" id="monografiyaModal{{ monografiya.id }}" tabindex="-1"
+                                         aria-labelledby="monografiyaModalLabel{{ monografiya.id }}"
+                                         aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                                            <div class="modal-content shadow-lg"
+                                                 style="border-radius: 15px; overflow: hidden;">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title"
+                                                        id="monografiyaModalLabel{{ monografiya.id }}">Monografiya
+                                                        ma'lumotlari</h5>
+                                                    <button type="button" class="btn-close btn-close-white"
+                                                            data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body p-4">
+                                                    <div class="row g-4">
+                                                        <!-- Rasmi uchun chap tomon -->
+                                                        <div class="col-md-6">
+                                                            <h6 class="fw-bold text-dark">Fayl Rasmi</h6>
+                                                            {% if monografiya.image %}
+                                                                <img src="{{ monografiya.image.url }}"
+                                                                     class="img-fluid rounded shadow-sm"
+                                                                     alt="Monografiya rasmi"
+                                                                     style="max-height: 400px; object-fit: cover; border: 1px solid #ddd;">
+                                                            {% else %}
+                                                                <div class="text-center p-4 bg-light rounded shadow-sm">
+                                                                    <p class="text-muted mb-0">Rasm yuklanmagan</p>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                        <!-- Fayl turi uchun o‘ng tomon -->
+                                                        <div class="col-md-6">
+                                                            <h6 class="fw-bold text-dark">Fayl haqida malumot::</h6>
+                                                            <p class="bg-light p-3 rounded shadow-sm"
+                                                               style="border: 1px solid #e9ecef;">{{ monografiya.content_type|default:"Ma'lumot yo‘q" }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer bg-light">
+                                                    {% if monografiya.file %}
+                                                        <a href="{{ monografiya.file.url }}"
+                                                           class="btn btn-success btn-sm px-3" download>
+                                                            <i class="fas fa-download me-2"></i> Yuklab olish
+                                                        </a>
+                                                    {% else %}
+                                                        <button class="btn btn-secondary btn-sm px-3" disabled>
+                                                            <i class="fas fa-download me-2"></i> Fayl yuklanmagan
+                                                        </button>
+                                                    {% endif %}
+                                                    <button type="button" class="btn btn-outline-dark btn-sm px-3"
+                                                            data-bs-dismiss="modal">Yopish
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- O‘chirish Modal -->
+                                    <div class="modal fade" id="deleteMonografiyaModal{{ monografiya.id }}"
+                                         tabindex="-1"
+                                         aria-labelledby="deleteMonografiyaModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Monografiyani O‘chirish</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                            aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Haqiqatan ham <b>{{ monografiya.title }}</b> ni
+                                                        o‘chirmoqchimisiz?</p>
+                                                    <form method="POST"
+                                                          action="{% url 'm_monografiya_delete' monografiya.id %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">O‘chirish</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">Hozircha Malumotlar mavjud
+                                            emas
+                                        </td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Sahifalash -->
+                    <div class="d-flex justify-content-center">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item {% if not monografiyalar.has_previous %}disabled{% endif %}">
+                                    <a class="page-link"
+                                       href="{% if monografiyalar.has_previous %}?page={{ monografiyalar.previous_page_number }}&limit=
+                                           {{ request.GET.limit }}{% else %}#{% endif %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% for num in monografiyalar.paginator.page_range %}
+                                    <li class="page-item {% if monografiyalar.number == num %}active{% endif %}">
+                                        <a class="page-link text-primary font-weight-bold"
+                                           href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+                                <li class="page-item {% if not monografiyalar.has_next %}disabled{% endif %}">
+                                    <a class="page-link"
+                                       href="{% if monografiyalar.has_next %}?page={{ monografiyalar.next_page_number }}&limit=
+                                           {{ request.GET.limit }}{% else %}#{% endif %}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </main>
+
+
+
+    <!-- Yangi Monografiya qo‘shish uchun modal -->
+    <div class="modal fade" id="addMonografiyaModal" tabindex="-1" aria-labelledby="addMonografiyaModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addMonografiyaModalLabel">Yangi Monografiya Qo‘shish</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form method="POST" action="{% url 'm_monografiya_create' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">Mavzu</label>
+                                <input type="text" class="form-control" id="{{ form.title.id_for_label }}"
+                                       name="{{ form.title.name }}" value="{{ form.title.value|default:'' }}"
+                                       placeholder="Mavzu matni" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.author.id_for_label }}" class="form-label fw-bold">Muallif</label>
+                                <input type="text" class="form-control" id="{{ form.author.id_for_label }}"
+                                       name="{{ form.author.name }}" value="{{ form.author.value|default:'' }}"
+                                       placeholder="Muallif ismini kiriting" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.institution_name.id_for_label }}" class="form-label fw-bold">Muassasa
+                                    Nomi</label>
+                                <input type="text" class="form-control" id="{{ form.institution_name.id_for_label }}"
+                                       name="{{ form.institution_name.name }}"
+                                       value="{{ form.institution_name.value|default:'' }}"
+                                       placeholder="Muassasa nomini kiriting">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.keywords.id_for_label }}" class="form-label fw-bold">Kalit
+                                    So‘zlar</label>
+                                <input type="text" class="form-control" id="{{ form.keywords.id_for_label }}"
+                                       name="{{ form.keywords.name }}" value="{{ form.keywords.value|default:'' }}"
+                                       placeholder="Kalit so‘zlarni kiriting">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.publication_type.id_for_label }}" class="form-label fw-bold">Nashr
+                                    Turi</label>
+                                <textarea class="form-control" id="{{ form.publication_type.id_for_label }}"
+                                          name="{{ form.publication_type.name }}" rows="3"
+                                          placeholder="Nashr turini kiriting">{{ form.publication_type.value|default:'' }}</textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.content_type.id_for_label }}"
+                                       class="form-label fw-bold">Anotatsiya</label>
+                                <textarea class="form-control" id="{{ form.content_type.id_for_label }}"
+                                          name="{{ form.content_type.name }}" rows="3"
+                                          placeholder="Anotatsiyani kiriting">{{ form.content_type.value|default:'' }}</textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.publication_year.id_for_label }}" class="form-label fw-bold">Nashr
+                                    Yili</label>
+                                <input type="number" class="form-control" id="{{ form.publication_year.id_for_label }}"
+                                       name="{{ form.publication_year.name }}"
+                                       value="{{ form.publication_year.value|default:'' }}" placeholder="YYYY"
+                                       min="1900" max="2100">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.degree.id_for_label }}" class="form-label fw-bold">Daraja</label>
+                                <select class="form-select" id="{{ form.degree.id_for_label }}"
+                                        name="{{ form.degree.name }}" required>
+                                    {% for value, label in form.degree.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.degree.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.branch.id_for_label }}" class="form-label fw-bold">Filial</label>
+                                <select class="form-select" id="{{ form.branch.id_for_label }}"
+                                        name="{{ form.branch.name }}">
+                                    {% for value, label in form.branch.field.choices %}
+                                        <option value="{{ value }}"
+                                                {% if form.branch.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.issn_isbn.id_for_label }}"
+                                       class="form-label fw-bold">ISSN/ISBN</label>
+                                <input type="text" class="form-control" id="{{ form.issn_isbn.id_for_label }}"
+                                       name="{{ form.issn_isbn.name }}" value="{{ form.issn_isbn.value|default:'' }}"
+                                       placeholder="ISSN yoki ISBN kiriting">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.file.id_for_label }}" class="form-label fw-bold">Monografiya
+                                    Fayli</label>
+                                <input type="file" class="form-control" id="{{ form.file.id_for_label }}"
+                                       name="{{ form.file.name }}" accept=".pdf,.doc,.docx">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.image.id_for_label }}" class="form-label fw-bold">Monografiya
+                                    Rasmi</label>
+                                <input type="file" class="form-control" id="{{ form.image.id_for_label }}"
+                                       name="{{ form.image.name }}" accept="image/*">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-success px-4 py-2 fw-bold">Qo‘shish</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Bootstrap JS (shablon oxiriga qo‘shing) -->
+    <script src="{% static 'user/js/bundle.min.js' %}"></script>
+    <!-- JavaScript -->
+    <script>
+        // Limit tanlash
+        document.getElementById('limitSelect').addEventListener('change', function () {
+            let selectedLimit = this.value;
+            let url = new URL(window.location.href);
+            url.searchParams.set('limit', selectedLimit);
+            if (!url.searchParams.get('page')) {
+                url.searchParams.set('page', '1'); // Agar page yo‘q bo‘lsa, 1 qo‘yamiz
+            }
+            window.location.href = url.toString();
+        });
+
+        // Qidiruv funksiyasi (frontendda filtr)
+        document.getElementById("searchInput").addEventListener("keyup", function () {
+            var searchValue = this.value.toLowerCase();
+            var tableRows = document.querySelectorAll("#monografiyaTable tbody tr");
+
+            tableRows.forEach(row => {
+                var rowText = row.innerText.toLowerCase();
+                if (rowText.includes(searchValue)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    </script>
+
+{% endblock %}
+
+
+

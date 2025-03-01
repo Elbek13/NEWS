@@ -1,0 +1,104 @@
+# ==========================
+# General Python & Django
+# ==========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+.eggs/
+*.log
+*.sqlite3
+db.sqlite3
+/media/
+/staticfiles/
+*.pyc
+
+# ==========================
+# Virtual Environments
+# ==========================
+.venv/
+.venv/*
+
+# ==========================
+# Logs and Debug Files
+# ==========================
+logs/
+*.log
+*.out
+*.err
+log/
+debug.log
+nohup.out
+
+# ==========================
+# Docker
+# ==========================
+docker-compose.override.yml
+.dockerignore
+docker-data/
+postgres-data/
+kafka-data/
+debezium-data/
+
+# ==========================
+# PostgreSQL & Databases
+# ==========================
+*.pgsql
+*.pg_dump
+*.db
+*.sql
+*.sqlite3
+*.pid
+
+# ==========================
+# Kafka & Debezium
+# ==========================
+kafka-logs/
+connect-offsets/
+connect-status/
+connect-configs/
+schema-registry/
+
+# ==========================
+# IDEs & Editors
+# ==========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.iml
+
+# JetBrains IDEs (PyCharm, WebStorm, etc.)
+*.ipr
+*.iws
+*.idea/workspace.xml
+*.idea/tasks.xml
+*.idea/dictionaries
+*.idea/vcs.xml
+*.idea/jsLibraryMappings.xml
+*.idea/.idea_modules/
+*.idea/modules.xml
+
+# VS Code settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ==========================
+# OS Specific
+# ==========================
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+*.swp
+*.swo
+*.swn

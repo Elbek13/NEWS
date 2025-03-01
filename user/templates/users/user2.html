@@ -1,0 +1,345 @@
+{#{% extends 'users_base.html' %}#}
+{#{% load static %}#}
+{#{% block content %}#}
+{##}
+{#        <!-- Category Start -->#}
+{#    <div class="container-xxl py-5">#}
+{#        <div class="container">#}
+{#            <div#}
+{#                    class="text-center mx-auto mb-5 wow fadeInUp"#}
+{#                    data-wow-delay="0.1s"#}
+{#                    style="max-width: 600px"#}
+{#            >#}
+{#                <h1 class="mb-3">Kategoriyalar</h1>#}
+{#                <p>#}
+{#                </p>#}
+{#            </div>#}
+{#            <div class="row g-4 mx-auto">#}
+{#                <div class="col-lg-1"></div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-apartment.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6>Dissertatsiyalar</h6>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.3s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-villa.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6>Monografiyalar</h6>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.5s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-house.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6 style="font-size: 14px!important;">Risola va Kitoblar</h6>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.7s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-housing.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6>Darsliklar</h6>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.9s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-building.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6>Qo'llanmalar</h6>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-1"></div>#}
+{#                <div class="col-lg-1"></div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-apartment.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6>Ilmiy Loyihalar</h6>#}
+                            {#                            <span>123 Properties</span>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.3s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-villa.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6 style="font-size: 14px!important;">Ilmiy Jurnallar</h6>#}
+                            {#                            <span>123 Properties</span>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.5s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-house.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6 style="font-size: 14px!important;">Ilmiy Maqolalar</h6>#}
+                            {#                            <span>123 Properties</span>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.7s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-housing.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6 style="font-size: 14px!important;">Xorijiy Tajribalar</h6>#}
+                            {#                            <span>123 Properties</span>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.9s">#}
+{#                    <a#}
+{#                            class="cat-item d-block bg-light text-center rounded p-3"#}
+{#                            href=""#}
+{#                    >#}
+{#                        <div class="rounded p-3">#}
+{#                            <div class="icon mb-3">#}
+{#                                <img#}
+{#                                        class="img-fluid"#}
+{#                                        src="{% static 'user/u_img/icon-building.png' %}"#}
+{#                                        alt="Icon"#}
+{#                                />#}
+{#                            </div>#}
+{#                            <h6>Boshqalar</h6>#}
+                            {#                            <span>123 Properties</span>#}
+{#                        </div>#}
+{#                    </a>#}
+{#                </div>#}
+{#                <div class="col-lg-1"></div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#    <hr/>#}
+{#    <!-- Category End -->#}
+{##}
+{#    <!-- Yangilik List Start -->#}
+{#    <div class="container-xxl py-5">#}
+{#        <div class="container">#}
+{#            <div class="row g-0 gx-5 align-items-end">#}
+{#                <div class="col-lg-6">#}
+{#                    <div#}
+{#                            class="text-start mx-auto mb-5 wow slideInLeft"#}
+{#                            data-wow-delay="0.1s"#}
+{#                    >#}
+{#                        <h1 class="mb-3">Yangiliklar</h1>#}
+{#                        <p>#}
+{#                            Jahonda va O'zbekistonda sodir bo'layotgan yangiliklar matni#}
+{#                            bilan tanishing#}
+{#                        </p>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="tab-content">#}
+{#                <div id="tab-1" class="tab-pane fade show p-0 active">#}
+{#                    <div class="row g-4">#}
+{#                        <div#}
+{#                                class="col-lg-4 col-md-6 wow fadeInUp"#}
+{#                                data-wow-delay="0.1s">#}
+{#                            <div class="property-item rounded overflow-hidden">#}
+{#                                <div class="position-relative overflow-hidden">#}
+{#                                    <a href=""#}
+{#                                    ><img class="img-fluid" src="{% static 'user/u_img/property-1.jpg' %}" alt=""#}
+{#                                    /></a>#}
+{#                                </div>#}
+{#                                <div class="p-4 pb-0">#}
+{#                                    <a class="d-block h5 mb-2" href=""#}
+{#                                    >Golden Urban House For Sell</a#}
+{#                                    >#}
+{#                                </div>#}
+{#                                <div class="d-flex border-top">#}
+{##}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div#}
+{#                                class="col-12 text-center wow fadeInUp"#}
+{#                                data-wow-delay="0.1s"#}
+{#                        >#}
+{#                            <a class="btn btn-primary py-3 px-5" href=""#}
+{#                            >Ko'proq ...</a#}
+{#                            >#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#    <!-- Yangilik List End -->#}
+{##}
+{#    <!-- Yaratuvchilar Start -->#}
+{#    <div class="container-xxl py-5">#}
+{#        <div class="container">#}
+{#            <div#}
+{#                    class="text-center mx-auto mb-5 wow fadeInUp"#}
+{#                    data-wow-delay="0.1s"#}
+{#                    style="max-width: 600px"#}
+{#            >#}
+{#                <h1 class="mb-3">Loyiha Yaratuvchilari</h1>#}
+{#                <p>#}
+{#                    <span class="text-primary">#}
+{#                    Ushbu Loyiha Milliy armiyamiz salohiyatini yanada oshirish qo'shinlarda harbiy xizmatchilarning#}
+{#                        bilim ko'nikmalarini muhtahkamlash va amaliyotda keng joriy qilish maqsadida yaratildi.</span>#}
+{#                </p>#}
+{#            </div>#}
+{#            <div#}
+{#                    class="owl-carousel testimonial-carousel wow fadeInUp"#}
+{#                    data-wow-delay="0.1s"#}
+{#            >#}
+{#                <div class="testimonial-item bg-light rounded p-3">#}
+{#                    <div class="bg-white border rounded p-4">#}
+{#                        <p>#}
+{#                            Ushbu Loyiha Milliy armiyamiz salohiyatini yanada oshirish qo'shinlarda harbiy#}
+{#                            xizmatchilarning#}
+{#                            bilim ko'nikmalarini muhtahkamlash va amaliyotda keng joriy qilish maqsadida yaratildi.#}
+{#                        </p>#}
+{#                        <div class="d-flex align-items-center">#}
+{#                            <img#}
+{#                                    class="img-fluid flex-shrink-0 rounded"#}
+{#                                    src="{% static 'user/u_img/testimonial-1.jpg' %}"#}
+{#                                    style="width: 45px; height: 45px"#}
+{#                                    alt='rasm'/>#}
+{#                            <div class="ps-3">#}
+{#                                <h6 class="fw-bold mb-1">Client Name</h6>#}
+{#                                <small>Profession</small>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="testimonial-item bg-light rounded p-3">#}
+{#                    <div class="bg-white border rounded p-4">#}
+{#                        <p>#}
+{#                            Ushbu Loyiha Milliy armiyamiz salohiyatini yanada oshirish qo'shinlarda harbiy#}
+{#                            xizmatchilarning#}
+{#                            bilim ko'nikmalarini muhtahkamlash va amaliyotda keng joriy qilish maqsadida yaratildi.#}
+{#                        </p>#}
+{#                        <div class="d-flex align-items-center">#}
+{#                            <img#}
+{#                                    class="img-fluid flex-shrink-0 rounded"#}
+{#                                    src="{% static 'user/u_img/testimonial-2.jpg' %}"#}
+{#                                    style="width: 45px; height: 45px" alt="rasm"#}
+{#                            />#}
+{#                            <div class="ps-3">#}
+{#                                <h6 class="fw-bold mb-1">Client Name</h6>#}
+{#                                <small>Profession</small>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="testimonial-item bg-light rounded p-3">#}
+{#                    <div class="bg-white border rounded p-4">#}
+{#                        <p>#}
+{#                            Ushbu Loyiha Milliy armiyamiz salohiyatini yanada oshirish qo'shinlarda harbiy#}
+{#                            xizmatchilarning#}
+{#                            bilim ko'nikmalarini muhtahkamlash va amaliyotda keng joriy qilish maqsadida yaratildi.#}
+{#                        </p>#}
+{#                        <div class="d-flex align-items-center">#}
+{#                            <img#}
+{#                                    class="img-fluid flex-shrink-0 rounded"#}
+{#                                    src="{% static 'user/u_img/testimonial-3.jpg' %}"#}
+{#                                    style="width: 45px; height: 45px" alt="rasm"#}
+{#                            />#}
+{#                            <div class="ps-3">#}
+{#                                <h6 class="fw-bold mb-1">Client Name</h6>#}
+{#                                <small>Profession</small>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#    <!-- Yaratuvchilar End -->#}
+{##}
+{##}
+{#{% endblock %}#}
+
+
+uxlaa

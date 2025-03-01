@@ -1,0 +1,460 @@
+{% extends 'm_base.html' %}
+{% block content %}
+    {% load static %}
+    <!-- Navbar -->
+    <nav
+            class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl"
+            id="navbarBlur"
+            data-scroll="false"
+    >
+        <div class="container-fluid py-1 px-3 pt-0">
+            <nav aria-label="breadcrumb">
+                <ol
+                        class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5"
+                >
+                    <li class="breadcrumb-item text-sm">
+                        <a class="opacity-5 text-white" href="{% url 'm_category_list' %}">Ketegoriyalar</a>
+                    </li>
+                    <li
+                            class="breadcrumb-item text-sm text-white active"
+                            aria-current="page"
+                    >
+                        Xorijiy Tajribalar
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </nav>
+
+    <main class="main-content position-relative border-radius-lg">
+        <div class="row">
+            <div class="col-12 responsive-div">
+                <!-- Notification -->
+                {% if success_message %}
+                    <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ success_message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <script>
+                        setTimeout(function () {
+                            document.getElementById("successAlert").style.display = "none";
+                        }, 3000);
+                    </script>
+                {% endif %}
+                <div class="card mb-4 mt-4 mx-3">
+                    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                        <h6>Ro‘yxat</h6>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#addTajribaModal">
+                            Yangi Qo‘shish
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between mx-3 my-2">
+                        <div>
+                            <select id="limitSelect" class="form-select w-150 pe-5 d-inline-block">
+                                <option value="10"
+                                        {% if request.GET.limit == "10" or not request.GET.limit %}selected{% endif %}>
+                                    10
+                                </option>
+                                <option value="20" {% if request.GET.limit == "20" %}selected{% endif %}>20</option>
+                                <option value="30" {% if request.GET.limit == "30" %}selected{% endif %}>30</option>
+                            </select>
+                        </div>
+                        <label for="searchInput"></label><input type="text" id="searchInput"
+                                                                class="form-control w-15 me-3" placeholder="Qidirish..."
+                                                                value="{{ search_query|default:'' }}">
+                    </div>
+
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-0">
+                            <table id="tajribaTable" class="table align-items-center justify-content-center mb-0">
+                                <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                        Mavzu
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Muallif
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Davlat
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Harbiy Tashkilot
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Daraja
+                                    </th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                        Harakatlar
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for tajriba in tajribalar %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex px-2">
+                                                <div class="my-auto">
+                                                    <h6 class="mb-0 mx-3 text-sm">{{ tajriba.title }}</h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><p class="text-sm font-weight-bold mb-0">{{ tajriba.author }}</p></td>
+                                        <td>
+                                            <p class="text-sm font-weight-bold mb-0">{{ tajriba.country|default:"--" }}</p>
+                                        </td>
+                                        <td>
+                                            <p class="text-sm font-weight-bold mb-0">{{ tajriba.Military_organization|default:"--" }}</p>
+                                        </td>
+                                        <td><span
+                                                class="text-xs font-weight-bold">{{ tajriba.get_degree_display|default:"--" }}</span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                                    data-bs-target="#editTajribaModal{{ tajriba.id }}">Tahrirlash
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                                    data-bs-target="#deleteTajribaModal{{ tajriba.id }}">O‘chirish
+                                            </button>
+                                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#tajribaModal{{ tajriba.id }}"><i
+                                                    class="fas fa-eye me-1"></i> Ko‘rish
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Tahrirlash Modal -->
+                                    <div class="modal fade" id="editTajribaModal{{ tajriba.id }}" tabindex="-1"
+                                         aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white d-flex justify-content-center">
+                                                    <h5 class="modal-title text-center">Tahrirlash</h5>
+                                                    <button type="button" class="btn-close btn-close-white"
+                                                            data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body p-4">
+                                                    <form method="POST" action="{% url 'm_tajriba_edit' tajriba.id %}"
+                                                          enctype="multipart/form-data">
+                                                        {% csrf_token %}
+
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label for="title{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Mavzu</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="title{{ tajriba.id }}" name="title"
+                                                                       value="{{ tajriba.title }}" required>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="author{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Muallif</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="author{{ tajriba.id }}" name="author"
+                                                                       value="{{ tajriba.author }}" required>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="country{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Davlat</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="country{{ tajriba.id }}" name="country"
+                                                                       value="{{ tajriba.country }}">
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="Military_organization{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Harbiy
+                                                                    Tashkilot</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="Military_organization{{ tajriba.id }}"
+                                                                       name="Military_organization"
+                                                                       value="{{ tajriba.Military_organization }}">
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="material{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Material</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="material{{ tajriba.id }}" name="material"
+                                                                       value="{{ tajriba.material }}">
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="made_in{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Ishlab Chiqarilgan
+                                                                    Yili</label>
+                                                                <input type="number" class="form-control"
+                                                                       id="made_in{{ tajriba.id }}" name="made_in"
+                                                                       value="{{ tajriba.made_in }}">
+                                                            </div>
+
+                                                            <div class="col-md-12">
+                                                                <label for="anotation{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Anotatsiya</label>
+                                                                <textarea class="form-control"
+                                                                          id="anotation{{ tajriba.id }}"
+                                                                          name="anotation"
+                                                                          rows="3">{{ tajriba.anotation }}</textarea>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="keys{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Kalit So‘zlar</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="keys{{ tajriba.id }}" name="keys"
+                                                                       value="{{ tajriba.keys }}">
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="degree{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Daraja</label>
+                                                                <select class="form-select" id="degree{{ tajriba.id }}"
+                                                                        name="degree">
+                                                                    {% for value, label in form.degree.field.choices %}
+                                                                        <option value="{{ value }}"
+                                                                                {% if tajriba.degree == value %}selected{% endif %}>
+                                                                            {{ label }}
+                                                                        </option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="file{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Fayl</label>
+                                                                <input type="file" class="form-control"
+                                                                       id="file{{ tajriba.id }}" name="file">
+                                                                {% if tajriba.file %}
+                                                                    <small class="text-muted">
+                                                                        <a href="{{ tajriba.file.url }}" target="_blank"
+                                                                           download>Hozirgi faylni yuklab olish</a>
+                                                                    </small>
+                                                                {% endif %}
+                                                            </div>
+
+                                                            <div class="col-md-6">
+                                                                <label for="slug{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Qo'shimcha
+                                                                    maydon</label>
+                                                                <input type="text" class="form-control"
+                                                                       id="slug{{ tajriba.id }}" name="slug"
+                                                                       value="{{ tajriba.slug }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="image{{ tajriba.id }}"
+                                                                       class="form-label fw-bold">Rasm</label>
+                                                                <input type="file" class="form-control"
+                                                                       id="image{{ tajriba.id }}" name="image"
+                                                                       accept="image/*">
+                                                                {% if tajriba.image %}
+                                                                    <small class="text-muted">
+                                                                        <a href="{{ tajriba.image.url }}"
+                                                                           target="_blank" download>Hozirgi rasmni
+                                                                            yuklab olish</a>
+                                                                    </small>
+                                                                    <br>
+                                                                    <img src="{{ tajriba.image.url }}" alt="Rasm"
+                                                                         class="img-thumbnail mt-2" width="150">
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="d-flex justify-content-end mt-4">
+                                                            <button type="submit"
+                                                                    class="btn btn-success px-4 py-2 fw-bold">Saqlash
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- O‘chirish Modal -->
+                                    <div class="modal fade" id="deleteTajribaModal{{ tajriba.id }}" tabindex="-1"
+                                         aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">O‘chirish</h5>
+                                                    <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Haqiqatan ham <b>{{ tajriba.title }}</b> ni o‘chirmoqchimisiz?
+                                                    </p>
+                                                    <form method="POST"
+                                                          action="{% url 'm_tajriba_delete' tajriba.id %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">O‘chirish</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Hozircha ma'lumotlar mavjud
+                                            emas
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Sahifalash -->
+                    <div class="d-flex justify-content-center">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item {% if not tajribalar.has_previous %}disabled{% endif %}">
+                                    <a class="page-link"
+                                       href="{% if tajribalar.has_previous %}?page={{ tajribalar.previous_page_number }}&limit={{ request.GET.limit }}&search=
+                                           {{ search_query|urlencode }}{% else %}#{% endif %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% for num in tajribalar.paginator.page_range %}
+                                    <li class="page-item {% if tajribalar.number == num %}active{% endif %}">
+                                        <a class="page-link text-primary font-weight-bold"
+                                           href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query|urlencode }}">{{ num }}</a>
+                                    </li>
+                                {% endfor %}
+                                <li class="page-item {% if not tajribalar.has_next %}disabled{% endif %}">
+                                    <a class="page-link"
+                                       href="{% if tajribalar.has_next %}?page={{ tajribalar.next_page_number }}&limit={{ request.GET.limit }}&search=
+                                           {{ search_query|urlencode }}{% else %}#{% endif %}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Yangi Tajriba qo‘shish uchun modal -->
+    <div class="modal fade" id="addTajribaModal" tabindex="-1" aria-labelledby="addTajribaModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addTajribaModalLabel">Yangi Qo‘shish</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form method="POST" action="{% url 'm_tajriba_create' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">Mavzu</label>
+                                {{ form.title }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.author.id_for_label }}" class="form-label fw-bold">Muallif</label>
+                                {{ form.author }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.country.id_for_label }}" class="form-label fw-bold">Davlat</label>
+                                {{ form.country }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.Military_organization.id_for_label }}" class="form-label fw-bold">Harbiy
+                                    Tashkilot</label>
+                                {{ form.Military_organization }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.material.id_for_label }}"
+                                       class="form-label fw-bold">Material</label>
+                                {{ form.material }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.made_in.id_for_label }}" class="form-label fw-bold">Ishlab
+                                    Chiqarilgan Yili</label>
+                                {{ form.made_in }}
+                            </div>
+
+                            <div class="col-md-12">
+                                <label for="{{ form.anotation.id_for_label }}"
+                                       class="form-label fw-bold">Anotatsiya</label>
+                                {{ form.anotation }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.keys.id_for_label }}" class="form-label fw-bold">Kalit
+                                    So‘zlar</label>
+                                {{ form.keys }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.degree.id_for_label }}" class="form-label fw-bold">Daraja</label>
+                                {{ form.degree }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.file.id_for_label }}" class="form-label fw-bold">Fayl</label>
+                                {{ form.file }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.image.id_for_label }}" class="form-label fw-bold">Rasm</label>
+                                {{ form.image }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.slug.id_for_label }}" class="form-label fw-bold">Slug</label>
+                                {{ form.slug }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-success px-4 py-2 fw-bold">Qo‘shish</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Bootstrap JS (shablon oxiriga qo‘shing) -->
+    <script src="{% static 'user/js/bundle.min.js' %}"></script>
+    <!-- JavaScript -->
+    <script>
+        // Update limit parameter in URL
+        document.getElementById('limitSelect').addEventListener('change', function () {
+            let selectedLimit = this.value;
+            let url = new URL(window.location.href);
+            url.searchParams.set('limit', selectedLimit);
+            url.searchParams.set('page', 1); // Reset to first page when limit changes
+            window.location.href = url.toString();
+        });
+
+        // Server-side search on input
+        document.getElementById('searchInput').addEventListener('keyup', function (e) {
+            if (e.key === 'Enter') { // Trigger search on Enter key
+                let searchValue = this.value.trim();
+                let url = new URL(window.location.href);
+                url.searchParams.set('search', searchValue);
+                url.searchParams.set('page', 1); // Reset to first page on new search
+                window.location.href = url.toString();
+            }
+        });
+    </script>
+
+{% endblock %}

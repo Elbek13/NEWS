@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Ro‘yxatdan o‘tish</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+    <link rel="shortcut icon" href="{% static 'user/img/books.jpg' %}" type="image/x-icon">
+    <style>
+        html, body {
+            height: 100vh;
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url("{% static 'user/img/library.jpeg' %}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 20px;
+        }
+
+        #formContent {
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        /* Form stillari */
+        form p {
+            margin: 15px 0; /* Inputlar orasidagi masofani biroz ko‘paytirdim */
+            text-align: center; /* Label va inputni markazga joylashtirish */
+        }
+
+        label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            display: block;
+            margin-bottom: 5px;
+            text-align: center; /* Labelni markazga tekislash */
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            background-color: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+            width: 100%;
+            max-width: 85%;
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: block; /* Inputni to‘liq blok qilish */
+            margin: 0 auto; /* Markazga joylashtirish */
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Selectni chiroyli qilish va uzaytirish */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.3) url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDE2IDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMUw4IDdNMTUgMSIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=") no-repeat right 10px center;
+            padding-right: 30px;
+            cursor: pointer;
+            max-width: 90% !important; /* 5px uzunroq qilish uchun */
+        }
+
+        select option {
+            color: black;
+            background: white;
+        }
+
+        input[type="submit"] {
+            background-color: rgba(86, 186, 237, 0.7);
+            border: none;
+            color: white;
+            padding: 15px 80px;
+            font-size: 14px;
+            text-transform: uppercase;
+            border-radius: 5px;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: rgba(57, 172, 231, 0.8);
+        }
+
+        .fadeIn {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-box {
+            color: white;
+            background: rgba(255, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper fadeIn">
+    <div id="formContent">
+        <!-- Sarlavha -->
+        <h2 class="active">Ro‘yxatdan o‘tish</h2>
+
+        <!-- Agar xatolik bo'lsa, xabar ko'rsatish -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message-box">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Profil rasmi -->
+        <div class="fadeIn first">
+            <img src="{% static 'user/img/working.png' %}" style="width: 50px; height: 50px;" alt="User Icon"/>
+        </div>
+
+        <!-- Registration Form -->
+        <form method="post">
+            {% csrf_token %}
+            <p>
+                <label for="passport_number">Pasport Raqami:</label>
+                <input type="text" id="passport_number" name="passport_number" placeholder="AA1234567"  required>
+            </p>
+            <p>
+                <label for="username">Foydalanuvchi Nomi:</label>
+                <input type="text" id="username" name="username" placeholder="Ismingizni kiriting" required>
+            </p>
+            <p>
+                <label for="password">Parol:</label>
+                <input type="password" id="password" name="password" placeholder="Parolingizni kiriting" required>
+            </p>
+            <p>
+                <label for="branch">Filial:</label>
+                <select id="branch" name="branch">
+                    <option value="" disabled selected>Filial tanlang</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.id }}">{{ branch.name }}</option>
+                    {% endfor %}
+                </select>
+            </p>
+            <input type="submit" class="fadeIn fourth" value="Ro‘yxatdan o‘tish"/>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+

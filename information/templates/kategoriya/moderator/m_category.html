@@ -1,0 +1,207 @@
+{% extends 'm_base.html' %}
+{% load static %}
+{% block content %}
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur"
+         data-scroll="false">
+        <div class="container-fluid py-2 px-3 pt-0">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+                    <li class="breadcrumb-item text-sm text-white active" aria-current="page">
+                        Kategoriyalar
+                    </li>
+                </ol>
+            </nav>
+        </div>
+    </nav>
+    <!-- End Navbar -->
+    <div class="container-fluid py-4">
+        <!-- Breadcrumb End -->
+        <div class="row">
+            <div class="col-lg-4 my-2 dissertatsiya">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Dissertatsiya</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_dissertatsiya_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 moderator">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Monografiya</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_monografiya_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 user1">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Risola va Kitoblar</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_risola_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 user2">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Darsliklar</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_darslik_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 user3">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Qo'llanmalar</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_qollanma_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 user3">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Ilmiy Loyihalar</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_loyiha_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 user3">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Ilmiy Jurnallar</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_jurnal_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 user3">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Ilmiy Maqolalar</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_maqola_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 user3">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Boshqalar</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_other_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 my-2 user3">
+                <div class="card h-100">
+                    <div class="card-header pb-0 p-3">
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-center">
+                                <h6 class="mb-0 text-center">Xorijiy Tajribalar</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 pb-0">
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{% url 'm_tajriba_list' %}">
+                            <button class="btn btn-primary btn-sm">Ko'rish</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
