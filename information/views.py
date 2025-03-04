@@ -15,90 +15,6 @@ from django.contrib import messages
 from django.urls import reverse
 
 
-@login_required
-@csrf_exempt
-def global_search(request):
-    search = request.GET.get("search", "").strip()
-
-    results = {
-        'dissertatsiyalar': Dissertatsiya.objects.none(),
-        'monografiyalar': Monografiya.objects.none(),
-        'risolalar': Risola.objects.none(),
-        'darsliklar': Darslik.objects.none(),
-        'qollanmalar': Qollanma.objects.none(),
-        'loyihalar': Loyiha.objects.none(),
-        'jurnallar': Jurnal.objects.none(),
-        'maqolalar': Maqola.objects.none(),
-        'otherlar': Other.objects.none(),
-        'tajribalar': Xorijiy_Tajriba.objects.none(),
-    }
-
-    if search:
-        results['dissertatsiyalar'] = Dissertatsiya.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search) |
-            Q(institution_name__icontains=search)
-        ).order_by("-created_at")
-
-        results['monografiyalar'] = Monografiya.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search) |
-            Q(institution_name__icontains=search)
-        ).order_by("-created_at")
-
-        results['risolalar'] = Risola.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search) |
-            Q(institution_name__icontains=search)
-        ).order_by("-created_at")
-
-        results['darsliklar'] = Darslik.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search) |
-            Q(institution_name__icontains=search)
-        ).order_by("-created_at")
-
-        results['qollanmalar'] = Qollanma.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search) |
-            Q(institution_name__icontains=search)
-        ).order_by("-created_at")
-
-        results['loyihalar'] = Loyiha.objects.filter(
-            Q(title__icontains=search) |
-            Q(description__icontains=search)
-        ).order_by("-created_at")
-
-        results['jurnallar'] = Jurnal.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search) |
-            Q(institution_name__icontains=search)
-        ).order_by("-created_at")
-
-        results['maqolalar'] = Maqola.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search)
-        ).order_by("-created_at")
-
-        results['otherlar'] = Other.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search)
-        ).order_by("-created_at")
-
-        results['tajribalar'] = Xorijiy_Tajriba.objects.filter(
-            Q(title__icontains=search) |
-            Q(author__icontains=search) |
-            Q(Military_organization__icontains=search)
-        ).order_by("-Military_organization")
-
-    context = {
-        'search_query': search,
-        'results': results,
-    }
-
-    return render(request, "global_search.html", context)
-
-
 def role_required(*roles):
     def decorator(view_func):
         @login_required
@@ -138,157 +54,100 @@ def role_required(*roles):
     return decorator
 
 
-# Pagination va qidiruv uchun umumiy funksiya
-def paginate_and_filter(request, queryset, limit_default=10, search_fields=None):
-    limit = request.GET.get("limit", limit_default)
-    page = request.GET.get("page", 1)
+@login_required
+@role_required('user1', 'user2', 'user3')
+def global_search(request):
     search = request.GET.get("search", "").strip()
 
-    try:
-        limit = int(limit)
-        if limit <= 0:
-            limit = limit_default
-    except ValueError:
-        limit = limit_default
-
-    if search and search_fields:
-        q_objects = Q()
-        for field in search_fields:
-            q_objects |= Q(**{f"{field}__icontains": search})
-        queryset = queryset.filter(q_objects)
-
-    queryset = queryset.order_by("-created_at")
-    paginator = Paginator(queryset, limit)
-    paginated_items = paginator.get_page(page)
-
-    return {
-        "items": paginated_items,
-        "total_pages": paginator.num_pages,
-        "search_query": search,
+    results = {
+        'dissertatsiyalar': Dissertatsiya.objects.none(),
+        'monografiyalar': Monografiya.objects.none(),
+        'risolalar': Risola.objects.none(),
+        'darsliklar': Darslik.objects.none(),
+        'qollanmalar': Qollanma.objects.none(),
+        'loyihalar': Loyiha.objects.none(),
+        'jurnallar': Jurnal.objects.none(),
+        'maqolalar': Maqola.objects.none(),
+        'otherlar': Other.objects.none(),
+        'tajribalar': Xorijiy_Tajriba.objects.none(),
     }
 
+    if search:
+        # Qidiruv bo‘yicha asosiy so‘rovlar
+        results['dissertatsiyalar'] = Dissertatsiya.objects.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
-# Umumiy CRUD operatsiyalari uchun yordamchi funksiyalar
-@csrf_exempt
-def handle_create(request, form_class, redirect_name, publication_type=None, user=None):
-    if request.method == "POST":
-        form = form_class(request.POST, request.FILES, user=user)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            if user:
-                instance.user = user
-            if publication_type:
-                instance.publication_type = publication_type
-            instance.save()
-            request.session['success'] = f"{publication_type or 'Obyekt'} muvaffaqiyatli qo‘shildi!"
-            return redirect(redirect_name)
-    return redirect(redirect_name)
+        results['monografiyalar'] = Monografiya.objects.filter(  # Dissertatsiya → Monografiya ga tuzatildi
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
+        results['risolalar'] = Risola.objects.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
-@csrf_exempt
-def handle_edit(request, model_class, instance_id, form_class, redirect_name, user=None):
-    instance = get_object_or_404(model_class, id=instance_id)
-    if request.method == "POST":
-        form = form_class(request.POST, request.FILES, instance=instance, user=user)
-        if form.is_valid():
-            updated_instance = form.save(commit=False)
-            if not request.FILES.get('file'):
-                updated_instance.file = instance.file
-            if not request.FILES.get('image'):
-                updated_instance.image = instance.image
-            updated_instance.save()
-            request.session['success'] = f"{model_class._meta.model_name.capitalize()} muvaffaqiyatli yangilandi!"
-            return redirect(redirect_name)
-    return redirect(redirect_name)
+        results['darsliklar'] = Darslik.objects.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
+        results['qollanmalar'] = Qollanma.objects.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
-@require_POST
-def handle_delete(request, model_class, instance_id, redirect_name):
-    instance = get_object_or_404(model_class, id=instance_id)
-    instance.delete()
-    request.session['success'] = f"{model_class._meta.model_name.capitalize()} muvaffaqiyatli o‘chirildi!"
-    return redirect(redirect_name)
+        results['loyihalar'] = Loyiha.objects.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
+        results['jurnallar'] = Jurnal.objects.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
-# Umumiy list va detail funksiyasi
-def resource_list(request, model_class, form_class, template, limit_default=10, search_fields=None, user=None,
-                  moderator_filter=False):
-    queryset = model_class.objects.all()
-    if moderator_filter and request.user.role == 'moderator' and request.user.branch:
-        queryset = queryset.filter(branch=request.user.branch)
+        results['maqolalar'] = Maqola.objects.filter(  # 'not' olib tashlandi, bu xato edi
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
-    pagination_data = paginate_and_filter(request, queryset, limit_default, search_fields)
-    form = form_class(user=user) if user else form_class()
+        results['otherlar'] = Other.objects.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(institution_name__icontains=search)
+        ).order_by("-created_at")  # Vergul olib tashlandi
 
-    if request.method == "POST" and user:
-        form = form_class(request.POST, request.FILES, user=user)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.user = request.user
-            instance.save()
-            request.session['success'] = f"{model_class._meta.model_name.capitalize()} muvaffaqiyatli qo'shildi!"
-            return redirect(request.path_info)
+        results['tajribalar'] = Xorijiy_Tajriba.objects.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(Military_organization__icontains=search)
+        ).order_by("-Military_organization")  # Vergul olib tashlandi
+
+        # Foydalanuvchining roli user2 bo‘lsa, barcha query-setlarda LEVEL1 ma'lumotni chiqarib tashlash:
+        user = request.user
+        if user.role == 'user2':
+            for key, qs in results.items():
+                # Agar querysetda 'degree' maydoni mavjud bo‘lsa filtr qo‘llash:
+                if hasattr(qs.model, 'degree'):
+                    results[key] = qs.exclude(degree='LEVEL1')
 
     context = {
-        model_class._meta.model_name + "lar": pagination_data["items"],
-        "branches": Branch.objects.filter(
-            id=request.user.branch.id) if moderator_filter and request.user.role == 'moderator' and request.user.branch else Branch.objects.all(),
-        "success_message": request.session.pop('success', None),
-        "form": form,
-        "total_pages": pagination_data["total_pages"],
-        "search_query": pagination_data["search_query"],
+        'search_query': search,
+        'results': results,
     }
-    return render(request, template, context)
 
-
-def resource_detail(request, model_class, instance_id, form_class, template, user=None):
-    instance = get_object_or_404(model_class, id=instance_id)
-    form = form_class(instance=instance, user=user) if user else form_class(instance=instance)
-    return render(request, template, {
-        model_class._meta.model_name: instance,
-        "form": form,
-    })
-
-
-# Kategoriya
-@csrf_exempt
-def category_list(request):
-    return render(request, 'kategoriya/admin/category.html')
-
-
-@role_required('moderator')
-@csrf_exempt
-def m_category_list(request):
-    return render(request, 'kategoriya/moderator/m_category.html')
-
-
-# Dissertatsiya
-@csrf_exempt
-def dissertatsiya_list(request):
-    return resource_list(
-        request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/admin/dissertatsiya.html',
-        search_fields=['title', 'author', 'institution_name']
-    )
-
-
-@role_required('moderator')
-@csrf_exempt
-def m_dissertatsiya_list(request):
-    if not request.user.branch:
-        return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
-    return resource_list(
-        request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/moderator/m_dissertatsiya.html',
-        search_fields=['title', 'author', 'institution_name'], user=request.user, moderator_filter=True
-    )
-
-
-@role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
-def u1_dissertatsiya_list(request):
-    return resource_list(
-        request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/users/dissertatsiyalar/u_dissertatsiyalar.html',
-        limit_default=8, search_fields=['title', 'author', 'institution_name'], user=request.user, moderator_filter=True
-    )
+    return render(request, "global_search.html", context)
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -982,6 +841,159 @@ class U2OtherDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['title'] = f"Other: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
         return context
+
+
+# Pagination va qidiruv uchun umumiy funksiya
+def paginate_and_filter(request, queryset, limit_default=10, search_fields=None):
+    limit = request.GET.get("limit", limit_default)
+    page = request.GET.get("page", 1)
+    search = request.GET.get("search", "").strip()
+
+    try:
+        limit = int(limit)
+        if limit <= 0:
+            limit = limit_default
+    except ValueError:
+        limit = limit_default
+
+    if search and search_fields:
+        q_objects = Q()
+        for field in search_fields:
+            q_objects |= Q(**{f"{field}__icontains": search})
+        queryset = queryset.filter(q_objects)
+
+    queryset = queryset.order_by("-created_at")
+    paginator = Paginator(queryset, limit)
+    paginated_items = paginator.get_page(page)
+
+    return {
+        "items": paginated_items,
+        "total_pages": paginator.num_pages,
+        "search_query": search,
+    }
+
+
+# Umumiy CRUD operatsiyalari uchun yordamchi funksiyalar
+@csrf_exempt
+def handle_create(request, form_class, redirect_name, publication_type=None, user=None):
+    if request.method == "POST":
+        form = form_class(request.POST, request.FILES, user=user)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            if user:
+                instance.user = user
+            if publication_type:
+                instance.publication_type = publication_type
+            instance.save()
+            request.session['success'] = f"{publication_type or 'Obyekt'} muvaffaqiyatli qo‘shildi!"
+            return redirect(redirect_name)
+    return redirect(redirect_name)
+
+
+@csrf_exempt
+def handle_edit(request, model_class, instance_id, form_class, redirect_name, user=None):
+    instance = get_object_or_404(model_class, id=instance_id)
+    if request.method == "POST":
+        form = form_class(request.POST, request.FILES, instance=instance, user=user)
+        if form.is_valid():
+            updated_instance = form.save(commit=False)
+            if not request.FILES.get('file'):
+                updated_instance.file = instance.file
+            if not request.FILES.get('image'):
+                updated_instance.image = instance.image
+            updated_instance.save()
+            request.session['success'] = f"{model_class._meta.model_name.capitalize()} muvaffaqiyatli yangilandi!"
+            return redirect(redirect_name)
+    return redirect(redirect_name)
+
+
+@require_POST
+def handle_delete(request, model_class, instance_id, redirect_name):
+    instance = get_object_or_404(model_class, id=instance_id)
+    instance.delete()
+    request.session['success'] = f"{model_class._meta.model_name.capitalize()} muvaffaqiyatli o‘chirildi!"
+    return redirect(redirect_name)
+
+
+# Umumiy list va detail funksiyasi
+def resource_list(request, model_class, form_class, template, limit_default=10, search_fields=None, user=None,
+                  moderator_filter=False):
+    queryset = model_class.objects.all()
+    if moderator_filter and request.user.role == 'moderator' and request.user.branch:
+        queryset = queryset.filter(branch=request.user.branch)
+
+    pagination_data = paginate_and_filter(request, queryset, limit_default, search_fields)
+    form = form_class(user=user) if user else form_class()
+
+    if request.method == "POST" and user:
+        form = form_class(request.POST, request.FILES, user=user)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.user = request.user
+            instance.save()
+            request.session['success'] = f"{model_class._meta.model_name.capitalize()} muvaffaqiyatli qo'shildi!"
+            return redirect(request.path_info)
+
+    context = {
+        model_class._meta.model_name + "lar": pagination_data["items"],
+        "branches": Branch.objects.filter(
+            id=request.user.branch.id) if moderator_filter and request.user.role == 'moderator' and request.user.branch else Branch.objects.all(),
+        "success_message": request.session.pop('success', None),
+        "form": form,
+        "total_pages": pagination_data["total_pages"],
+        "search_query": pagination_data["search_query"],
+    }
+    return render(request, template, context)
+
+
+def resource_detail(request, model_class, instance_id, form_class, template, user=None):
+    instance = get_object_or_404(model_class, id=instance_id)
+    form = form_class(instance=instance, user=user) if user else form_class(instance=instance)
+    return render(request, template, {
+        model_class._meta.model_name: instance,
+        "form": form,
+    })
+
+
+# Kategoriya
+@csrf_exempt
+def category_list(request):
+    return render(request, 'kategoriya/admin/category.html')
+
+
+@role_required('moderator')
+@csrf_exempt
+def m_category_list(request):
+    return render(request, 'kategoriya/moderator/m_category.html')
+
+
+# Dissertatsiya
+@csrf_exempt
+def dissertatsiya_list(request):
+    return resource_list(
+        request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/admin/dissertatsiya.html',
+        search_fields=['title', 'author', 'institution_name']
+    )
+
+
+@role_required('moderator')
+@csrf_exempt
+def m_dissertatsiya_list(request):
+    if not request.user.branch:
+        return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
+    return resource_list(
+        request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/moderator/m_dissertatsiya.html',
+        search_fields=['title', 'author', 'institution_name'], user=request.user, moderator_filter=True
+    )
+
+
+@role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
+@csrf_exempt
+def u1_dissertatsiya_list(request):
+    return resource_list(
+        request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/users/dissertatsiyalar/u_dissertatsiyalar.html',
+        limit_default=8, search_fields=['title', 'author', 'institution_name'], user=request.user, moderator_filter=True
+    )
 
 
 def u1_dissertatsiya_detail(request, dissertatsiya_id):

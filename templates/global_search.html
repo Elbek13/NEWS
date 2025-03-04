@@ -10,264 +10,47 @@
         {% endif %}
         <hr/>
 
-        {# Dissertatsiyalar #}
-        {% if results.dissertatsiyalar %}
-            <section class="mb-5">
-                <h2>Dissertatsiyalar</h2>
-                <div class="row">
-                    {% for item in results.dissertatsiyalar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_dissertatsiya_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-apartment.png' %}"
-                                             alt="Dissertatsiya Icon"/>
+        {% for category, items in results.items %}
+            {% if items %}
+                <section class="mb-5">
+                    <h2>
+                        {% if category == 'dissertatsiyalar' %}Dissertatsiyalar
+                        {% elif category == 'monografiyalar' %}Monografiyalar
+                        {% elif category == 'risolalar' %}Risolalar
+                        {% elif category == 'darsliklar' %}Darsliklar
+                        {% elif category == 'qollanmalar' %}Qo‘llanmalar
+                        {% elif category == 'loyihalar' %}Loyihalar
+                        {% elif category == 'jurnallar' %}Jurnallar
+                        {% elif category == 'maqolalar' %}Maqolalar
+                        {% elif category == 'otherlar' %}Boshqa Obyektlar
+                        {% elif category == 'tajribalar' %}Xorijiy Tajribalar
+                        {% endif %}
+                    </h2>
+                    <div class="row">
+                        {% for item in items %}
+                            <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
+                                <a class="cat-item d-block bg-light text-center rounded p-3"
+                                   href="{% url 'u1_'|add:category|slice:":-3"|add:'_detail' item.id %}">
+                                    <div class="rounded p-3">
+                                        <div class="icon mb-3">
+                                            <img class="img-fluid"
+                                                 src="{% static 'user/u_img/icon-'|add:category|slice:":-3"|add:'.png' %}"
+                                                 alt="{{ category|slice:":-3"|title }} Icon"
+                                                 onError="this.onerror=null; this.src='{% static 'user/u_img/icon-villa.png' %}'"/>
+                                        </div>
+                                        <h6>{{ item.title }}</h6>
+                                        {% if category != 'loyihalar' %}
+                                            <p>{{ item.author }}</p>
+                                        {% endif %}
                                     </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Dissertatsiya natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Monografiyalar #}
-        {% if results.monografiyalar %}
-            <section class="mb-5">
-                <h2>Monografiyalar</h2>
-                <div class="row">
-                    {% for item in results.monografiyalar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_monografiya_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Monografiya Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Monografiya natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Risolalar #}
-        {% if results.risolalar %}
-            <section class="mb-5">
-                <h2>Risolalar</h2>
-                <div class="row">
-                    {% for item in results.risolalar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_risola_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Risola Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Risola natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Darsliklar #}
-        {% if results.darsliklar %}
-            <section class="mb-5">
-                <h2>Darsliklar</h2>
-                <div class="row">
-                    {% for item in results.darsliklar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_darslik_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Darslik Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Darslik natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Qo‘llanmalar #}
-        {% if results.qollanmalar %}
-            <section class="mb-5">
-                <h2>Qo‘llanmalar</h2>
-                <div class="row">
-                    {% for item in results.qollanmalar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_qollanma_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Qo‘llanma Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Qo‘llanma natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Loyihalar #}
-        {% if results.loyihalar %}
-            <section class="mb-5">
-                <h2>Loyihalar</h2>
-                <div class="row">
-                    {% for item in results.loyihalar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_loyiha_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Loyiha Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Loyiha natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Jurnallar #}
-        {% if results.jurnallar %}
-            <section class="mb-5">
-                <h2>Jurnallar</h2>
-                <div class="row">
-                    {% for item in results.jurnallar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_jurnal_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Jurnal Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Jurnal natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Maqolalar #}
-        {% if results.maqolalar %}
-            <section class="mb-5">
-                <h2>Maqolalar</h2>
-                <div class="row">
-                    {% for item in results.maqolalar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_maqola_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Maqola Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Maqola natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Boshqa Obyektlar #}
-        {% if results.otherlar %}
-            <section class="mb-5">
-                <h2>Boshqa Obyektlar</h2>
-                <div class="row">
-                    {% for item in results.otherlar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_other_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Boshqa obyekt Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Boshqa obyekt natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
-        {# Xorijiy Tajribalar #}
-        {% if results.tajribalar %}
-            <section class="mb-5">
-                <h2>Xorijiy Tajribalar</h2>
-                <div class="row">
-                    {% for item in results.tajribalar %}
-                        <div class="col-lg-2 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-                            <a class="cat-item d-block bg-light text-center rounded p-3"
-                               href="{% url 'u1_tajriba_detail' item.id %}">
-                                <div class="rounded p-3">
-                                    <div class="icon mb-3">
-                                        <img class="img-fluid" src="{% static 'user/u_img/icon-villa.png' %}"
-                                             alt="Tajriba Icon"/>
-                                    </div>
-                                    <h6>{{ item.title }}</h6>
-                                    <p>{{ item.author }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    {% empty %}
-                        <p>Xorijiy tajriba natijalari topilmadi.</p>
-                    {% endfor %}
-                </div>
-            </section>
-        {% endif %}
-
+                                </a>
+                            </div>
+                        {% empty %}
+                            <p>{{ category|slice:":-3"|title }} natijalari topilmadi.</p>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+        {% endfor %}
     </div>
 {% endblock %}
