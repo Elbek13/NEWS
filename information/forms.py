@@ -242,10 +242,6 @@ class OtherForm(BaseModelForm):
             self.fields['branch'].queryset = Branch.objects.all()
 
 
-from django import forms
-from .models import Xorijiy_Tajriba
-
-
 class XorijiyTajribaForm(forms.ModelForm):
     class Meta:
         model = Xorijiy_Tajriba

@@ -1,11 +1,11 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
-from django.core.mail import send_mail
 from branch.models import Branch
 
 
 class UserManager(BaseUserManager):
     def create_user(self, passport_number, username, password, branch=None, **extra_fields):
+        """Oddiy foydalanuvchi yaratish"""
         if not passport_number:
             raise ValueError("Pasport raqami kiritish majburiy!")
         if not username:
@@ -15,38 +15,18 @@ class UserManager(BaseUserManager):
 
         user = self.model(passport_number=passport_number, username=username, branch=branch, **extra_fields)
         user.set_password(password)  # Parolni hashlash
-        user.user_status = 'waiting'  # Yangi foydalanuvchi kutish rejimida bo‘ladi
+        user.user_status = 'waiting'  # Yangi foydalanuvchi kutish rejimida
         user.save(using=self._db)
-
-        # Admin panelga xabar yuborish
-        self.notify_admins(user)
-
         return user
 
     def create_superuser(self, passport_number, username, password, **extra_fields):
+        """Superuser yaratish"""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('role', 'administrator')
 
         return self.create_user(passport_number, username, password, **extra_fields)
 
-    def notify_admins(self, user):
-        """Adminlarga yangi foydalanuvchi qo‘shilgani haqida xabar yuborish"""
-        admin_users = self.model.objects.filter(is_superuser=True)
-        for admin in admin_users:
-            send_mail(
-                "Yangi foydalanuvchi ro‘yxatdan o‘tdi!",
-                f"Yangi foydalanuvchi {user.username} ({user.passport_number}) ro‘yxatdan o‘tdi. "
-                "Uning hisobini aktivlashtirish yoki bloklash uchun admin panelga kiring.",
-                "noreply@yourdomain.com",
-                [admin.passport_number],
-                fail_silently=True,
-            )
-
-
-
-    def __str__(self):
-        return self.name
 
 class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
@@ -66,7 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=15,
         unique=True,
         db_index=True,
-        verbose_name="Pasport Raqami"
+        verbose_name="Pasport Raqami",
     )
     password = models.CharField(
         max_length=255,
@@ -100,7 +80,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         choices=ROLE_CHOICES,
         verbose_name="User Role",
-        default='user3'
+        default='user3',
+        db_index=True  # Indeks qo‘shildi, agar filtr qilish kerak bo‘lsa
     )
     branch = models.ForeignKey(
         Branch,
@@ -109,12 +90,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name="Filial",
         null=True,
         blank=True,
+        db_index=True
     )
     user_status = models.CharField(
         max_length=10,
         choices=USER_STATUS_CHOICES,
         default='waiting',
         verbose_name="Foydalanuvchi Holati",
+        db_index=True  # Indeks qo‘shildi, agar filtr qilish kerak bo‘lsa
     )
 
     objects = UserManager()

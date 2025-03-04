@@ -61,7 +61,7 @@
     <div class="container-fluid nav-bar bg-transparent">
         <nav class="navbar navbar-expand-lg bg-white navbar-light py-0 px-4">
             <a
-                    href="index.html"
+                    href="{% url 'sayt' %}"
                     class="navbar-brand d-flex align-items-center text-center"
             >
                 <div class="icon p-2 me-2">
@@ -84,7 +84,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <div class="navbar-nav ms-auto">
-                    <a href="{% url 'user1' %}" class="nav-item nav-link active">Bosh sahifa</a>
+                    <a href="{% url 'sayt' %}" class="nav-item nav-link active">Bosh sahifa</a>
                     <div class="nav-item dropdown">
                         <a
                                 href="#"
@@ -102,7 +102,7 @@
                             <a href="{% url 'u1_risola_list' %}" class="dropdown-item"
                             >Risola va Kitoblar</a
                             >
-                            <a href="{% url 'u1_darslik_list' %}" class="dropdown-item"
+                            <a href="#" class="dropdown-item"
                             >Darslik</a
                             >
                             <a href="{% url 'u1_qollanma_list' %}" class="dropdown-item"
@@ -133,16 +133,25 @@
                         >Yangiliklar</a
                         >
                     </div>
+                    <a href="{% url 'chat' %}" class="nav-item nav-link">Bog'lanish</a>
                 </div>
-                <div class="dropdown">
-                    <a href="#" class="btn btn-primary px-2 d-none d-lg-flex" id="usernameDropdown"
-                       data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ user.username }}
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="usernameDropdown">
-                        <li><a class="dropdown-item" href="{% url 'logout' %}">Chiqish</a></li>
-                    </ul>
-                </div>
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-primary px-2 d-none d-lg-flex dropdown-toggle"
+                                type="button"
+                                id="userDropdown"
+                                data-bs-toggle="dropdown">
+                            {{ user.username }}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'logout' %}">Chiqish</a>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary px-2 d-none d-lg-flex">Kirish</a>
+                {% endif %}
             </div>
         </nav>
     </div>
@@ -181,39 +190,31 @@
     </div>
     <!-- Header End -->
 
-    {#    <!-- Search Start -->#}
-    {#    <div#}
-    {#            class="container-fluid bg-primary mb-5 wow fadeIn"#}
-    {#            data-wow-delay="0.1s"#}
-    {#            style="padding: 35px"#}
-    {#    >#}
-    {#        <div class="container">#}
-    {#            <form method="GET" action="{% url 'u1_dissertatsiya_list' %}">#}
-    {#                <div class="row g-2">#}
-    {#                    <div class="col-md-10">#}
-    {#                        <div class="row g-2">#}
-    {#                            <div class="col-md-10">#}
-    {#                                <label>#}
-    {#                                    <input#}
-    {#                                            type="text"#}
-    {#                                            name="search"#}
-    {#                                            class="form-control border-0 py-3"#}
-    {#                                            placeholder="Qidiruv..."#}
-    {#                                            value="{{ request.GET.search|default:'' }}"#}
-    {#                                            style="width: 1020px!important;"#}
-    {#                                    />#}
-    {#                                </label>#}
-    {#                            </div>#}
-    {#                        </div>#}
-    {#                    </div>#}
-    {#                    <div class="col-md-2">#}
-    {#                        <button type="submit" class="btn btn-dark border-0 w-100 py-3">Qidirish</button>#}
-    {#                    </div>#}
-    {#                </div>#}
-    {#            </form>#}
-    {#        </div>#}
-    {#    </div>#}
-    {#    <!-- Search End -->#}
+    <!-- Search Start -->
+    <form method="GET" action="{% url 'global_search' %}">
+        <div class="container-fluid bg-primary mb-5 wow fadeIn" data-wow-delay="0.1s" style="padding: 35px">
+            <div class="container">
+                <div class="row g-2">
+                    <div class="col-md-10">
+                        <div class="row g-2">
+                            <div class="col-md-10">
+                                <label>
+                                    <input type="text"
+                                           name="search"
+                                           class="form-control border-0 py-3"
+                                           placeholder="Qidiruv..." style="width: 1020px!important;"/>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-dark border-0 w-100 py-3">Qidirish</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <!-- Search End -->
 
     {% block content %}
     {% endblock %}
@@ -239,7 +240,7 @@
                 <div class="col-lg-3 col-md-6" style="display: block; text-align: left">
                     <h5 class="text-white mb-4">Sahifalar</h5>
                     <div class="d-flex flex-column"> <!-- flex-row o'rniga flex-column -->
-                        <a class="btn text-white-50 me-2" href="{% url 'user1' %}" style="text-align: left;">Bosh Sahifa</a>
+                        <a class="btn text-white-50 me-2" href="" style="text-align: left;">Bosh Sahifa</a>
                         <a class="btn text-white-50 me-2" href="" style="text-align: left;">Kategoriyalar</a>
                         <a class="btn text-white-50 me-2" href="" style="text-align: left;">Yangiliklar</a>
                     </div>

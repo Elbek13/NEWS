@@ -61,7 +61,7 @@
     <div class="container-fluid nav-bar bg-transparent">
         <nav class="navbar navbar-expand-lg bg-white navbar-light py-0 px-4">
             <a
-                    href="index.html"
+                    href="{% url 'user2' %}"
                     class="navbar-brand d-flex align-items-center text-center"
             >
                 <div class="icon p-2 me-2">
@@ -84,7 +84,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <div class="navbar-nav ms-auto">
-                    <a href="{% url 'user1' %}" class="nav-item nav-link active">Bosh sahifa</a>
+                    <a href="{% url 'user2' %}" class="nav-item nav-link active">Bosh sahifa</a>
                     <div class="nav-item dropdown">
                         <a
                                 href="#"
@@ -93,34 +93,34 @@
                         >Kategoriyalar</a
                         >
                         <div class="dropdown-menu rounded-0 m-0">
-                            <a href="{% url 'u1_dissertatsiya_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_dissertatsiya_list' %}" class="dropdown-item"
                             >Dissertatsiya</a
                             >
-                            <a href="{% url 'u1_monografiya_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_monografiya_list' %}" class="dropdown-item"
                             >Monografiya</a
                             >
-                            <a href="{% url 'u1_risola_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_risola_list' %}" class="dropdown-item"
                             >Risola va Kitoblar</a
                             >
-                            <a href="{% url 'u1_darslik_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_darslik_list' %}" class="dropdown-item"
                             >Darslik</a
                             >
-                            <a href="{% url 'u1_qollanma_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_qollanma_list' %}" class="dropdown-item"
                             >Qo'llanmalar</a
                             >
-                            <a href="{% url 'u1_loyiha_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_loyiha_list' %}" class="dropdown-item"
                             >Ilmiy Loyihalar</a
                             >
-                            <a href="{% url 'u1_jurnal_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_jurnal_list' %}" class="dropdown-item"
                             >Ilmiy Jurnallar</a
                             >
-                            <a href="{% url 'u1_maqola_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_maqola_list' %}" class="dropdown-item"
                             >Ilmiy Maqolalar</a
                             >
-                            <a href="{% url 'u1_tajriba_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_tajriba_list' %}" class="dropdown-item"
                             >Xorijiy Tajribalar</a
                             >
-                            <a href="{% url 'u1_other_list' %}" class="dropdown-item"
+                            <a href="{% url 'u2_other_list' %}" class="dropdown-item"
                             >Boshqalar</a
                             >
                         </div>
@@ -188,7 +188,7 @@
     {#            style="padding: 35px"#}
     {#    >#}
     {#        <div class="container">#}
-    {#            <form method="GET" action="{% url 'u1_dissertatsiya_list' %}">#}
+    {#            <form method="GET" action="{% url 'u2_dissertatsiya_list' %}">#}
     {#                <div class="row g-2">#}
     {#                    <div class="col-md-10">#}
     {#                        <div class="row g-2">#}
@@ -239,7 +239,8 @@
                 <div class="col-lg-3 col-md-6" style="display: block; text-align: left">
                     <h5 class="text-white mb-4">Sahifalar</h5>
                     <div class="d-flex flex-column"> <!-- flex-row o'rniga flex-column -->
-                        <a class="btn text-white-50 me-2" href="{% url 'user1' %}" style="text-align: left;">Bosh Sahifa</a>
+                        <a class="btn text-white-50 me-2" href="{% url 'user2' %}" style="text-align: left;">Bosh
+                            Sahifa</a>
                         <a class="btn text-white-50 me-2" href="" style="text-align: left;">Kategoriyalar</a>
                         <a class="btn text-white-50 me-2" href="" style="text-align: left;">Yangiliklar</a>
                     </div>
