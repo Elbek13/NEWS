@@ -81,32 +81,24 @@ class Dissertatsiya(BaseModel):
 
 
 class Darslik(BaseModel):
-
-
     class Meta:
         verbose_name = _("Darslik")
         verbose_name_plural = _("Darsliklar")
 
 
 class Loyiha(BaseModel):
-
-
     class Meta:
         verbose_name = _("Loyiha")
         verbose_name_plural = _("Loyihalar")
 
 
 class Jurnal(BaseModel):
-
-
     class Meta:
         verbose_name = _("Jurnal")
         verbose_name_plural = _("Jurnallar")
 
 
 class Maqola(BaseModel):
-
-
     class Meta:
         verbose_name = _("Hisobot")
         verbose_name_plural = _("Hisobotlar")
@@ -130,24 +122,20 @@ class Xorijiy_Tajriba(models.Model):
     file = models.FileField(upload_to='reports_files/', verbose_name=_("Xorijiy_Tajriba Fayli"), blank=True, null=True)
     slug = models.SlugField(max_length=255, verbose_name=_("Alohida qism"), unique=True, null=True)
     image = models.FileField(upload_to='images/', verbose_name=_("Rasm"), blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Yaratilgan Vaqt"),blank=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("O'zgartirilgan Vaqt"),blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Yaratilgan Vaqt"), blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("O'zgartirilgan Vaqt"), blank=True, null=True)
 
     def __str__(self):
         return self.title
 
 
 class Qollanma(BaseModel):
-    file = models.FileField(upload_to='reports_files/', verbose_name=_("Qo'llanma Fayli"), blank=True, null=True)
-
     class Meta:
         verbose_name = _("Hisobot")
         verbose_name_plural = _("Hisobotlar")
 
 
 class Other(BaseModel):
-    file = models.FileField(upload_to='other_files/', verbose_name=_("Boshqa Fayl"), blank=True, null=True)
-
     class Meta:
         verbose_name = _("Boshqalar")
         verbose_name_plural = _("Boshqalar")
