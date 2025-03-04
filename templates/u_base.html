@@ -84,7 +84,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <div class="navbar-nav ms-auto">
-                    <a href="index.html" class="nav-item nav-link active">Bosh sahifa</a>
+                    <a href="{% url 'user1' %}" class="nav-item nav-link active">Bosh sahifa</a>
                     <div class="nav-item dropdown">
                         <a
                                 href="#"
@@ -102,25 +102,25 @@
                             <a href="{% url 'u1_risola_list' %}" class="dropdown-item"
                             >Risola va Kitoblar</a
                             >
-                            <a href="#" class="dropdown-item"
+                            <a href="{% url 'u1_darslik_list' %}" class="dropdown-item"
                             >Darslik</a
                             >
-                            <a href="#" class="dropdown-item"
+                            <a href="{% url 'u1_qollanma_list' %}" class="dropdown-item"
                             >Qo'llanmalar</a
                             >
-                            <a href="#" class="dropdown-item"
+                            <a href="{% url 'u1_loyiha_list' %}" class="dropdown-item"
                             >Ilmiy Loyihalar</a
                             >
-                            <a href="#" class="dropdown-item"
+                            <a href="{% url 'u1_jurnal_list' %}" class="dropdown-item"
                             >Ilmiy Jurnallar</a
                             >
-                            <a href="#" class="dropdown-item"
+                            <a href="{% url 'u1_maqola_list' %}" class="dropdown-item"
                             >Ilmiy Maqolalar</a
                             >
-                            <a href="#" class="dropdown-item"
+                            <a href="{% url 'u1_tajriba_list' %}" class="dropdown-item"
                             >Xorijiy Tajribalar</a
                             >
-                            <a href="#" class="dropdown-item"
+                            <a href="{% url 'u1_other_list' %}" class="dropdown-item"
                             >Boshqalar</a
                             >
                         </div>
@@ -133,11 +133,10 @@
                         >Yangiliklar</a
                         >
                     </div>
-                    <a href="contact.html" class="nav-item nav-link">Bog'lanish</a>
                 </div>
                 {% if user.is_authenticated %}
                     <div class="dropdown">
-                        <button class="btn btn-primary px-2 d-none d-lg-flex dropdown-toggle"
+                        <button class="btn btn-primary px-2 d-none d-lg-flex "
                                 type="button"
                                 id="userDropdown"
                                 data-bs-toggle="dropdown">
@@ -240,8 +239,8 @@
                 <div class="col-lg-3 col-md-6" style="display: block; text-align: left">
                     <h5 class="text-white mb-4">Sahifalar</h5>
                     <div class="d-flex flex-column"> <!-- flex-row o'rniga flex-column -->
-                        <a class="btn text-white-50 me-2" href="" style="text-align: left;">Bosh Sahifa</a>
-                        <a class="btn text-white-50 me-2" href="" style="text-align: left;">Kategoriyalar</a>
+                        <a class="btn text-white-50 me-2" href="{% url 'user1' %}" style="text-align: left;">Bosh Sahifa</a>
+                        <a class="btn text-white-50 me-2"  style="text-align: left;">Kategoriyalar</a>
                         <a class="btn text-white-50 me-2" href="" style="text-align: left;">Yangiliklar</a>
                     </div>
                 </div>

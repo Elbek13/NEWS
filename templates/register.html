@@ -142,48 +142,63 @@
     </style>
 </head>
 <body>
-<div class="wrapper fadeIn">
+<div class="wrapper">
     <div id="formContent">
-        <!-- Sarlavha -->
-        <h2 class="active">Ro‘yxatdan o‘tish</h2>
+        <h2>Ro‘yxatdan o‘tish</h2>
 
-        <!-- Agar xatolik bo'lsa, xabar ko'rsatish -->
+        <!-- Xabarlar -->
         {% if messages %}
             {% for message in messages %}
-                <div class="message-box">{{ message }}</div>
+                <div class="{% if message.tags == 'success' %}success-box{% else %}message-box{% endif %}">
+                    {{ message }}
+                </div>
             {% endfor %}
         {% endif %}
 
         <!-- Profil rasmi -->
-        <div class="fadeIn first">
+        <div style="text-align: center; margin: 10px 0;">
             <img src="{% static 'user/img/working.png' %}" style="width: 50px; height: 50px;" alt="User Icon"/>
         </div>
 
-        <!-- Registration Form -->
+        <!-- Forma -->
         <form method="post">
             {% csrf_token %}
             <p>
-                <label for="passport_number">Pasport Raqami:</label>
-                <input type="text" id="passport_number" name="passport_number" placeholder="AA1234567"  required>
+                <label for="{{ form.passport_number.id_for_label }}">Pasport Raqami:</label>
+                {{ form.passport_number }}
+                {% if form.passport_number.errors %}
+                    <span class="error">{{ form.passport_number.errors.0 }}</span>
+                {% endif %}
             </p>
             <p>
-                <label for="username">Foydalanuvchi Nomi:</label>
-                <input type="text" id="username" name="username" placeholder="Ismingizni kiriting" required>
+                <label for="{{ form.username.id_for_label }}">Foydalanuvchi Nomi:</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <span class="error">{{ form.username.errors.0 }}</span>
+                {% endif %}
             </p>
             <p>
-                <label for="password">Parol:</label>
-                <input type="password" id="password" name="password" placeholder="Parolingizni kiriting" required>
+                <label for="{{ form.password.id_for_label }}">Parol:</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <span class="error">{{ form.password.errors.0 }}</span>
+                {% endif %}
             </p>
             <p>
-                <label for="branch">Filial:</label>
-                <select id="branch" name="branch">
-                    <option value="" disabled selected>Filial tanlang</option>
-                    {% for branch in branches %}
-                        <option value="{{ branch.id }}">{{ branch.name }}</option>
-                    {% endfor %}
-                </select>
+                <label for="{{ form.confirm_password.id_for_label }}">Parolni Tasdiqlash:</label>
+                {{ form.confirm_password }}
+                {% if form.confirm_password.errors %}
+                    <span class="error">{{ form.confirm_password.errors.0 }}</span>
+                {% endif %}
             </p>
-            <input type="submit" class="fadeIn fourth" value="Ro‘yxatdan o‘tish"/>
+            <p>
+                <label for="{{ form.branch.id_for_label }}">Filial:</label>
+                {{ form.branch }}
+                {% if form.branch.errors %}
+                    <span class="error">{{ form.branch.errors.0 }}</span>
+                {% endif %}
+            </p>
+            <input type="submit" value="Ro‘yxatdan o‘tish"/>
         </form>
     </div>
 </div>

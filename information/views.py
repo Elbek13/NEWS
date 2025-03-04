@@ -1,15 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from information.models import Dissertatsiya, Monografiya, Risola, Darslik, Qollanma, Loyiha, Jurnal, Maqola, Other, \
-    Xorijiy_Tajriba
-from information.forms import DissertatsiyaForm, MonografiyaForm, RisolaForm, DarslikForm, QollanmaForm, LoyihaForm, \
-    JurnalForm, MaqolaForm, OtherForm, XorijiyTajribaForm
-from django.core.paginator import Paginator
-from branch.models import Branch
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
+from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from .models import Dissertatsiya, Monografiya, Risola, Darslik, Qollanma, Loyiha, Jurnal, Maqola, Other, \
+    Xorijiy_Tajriba, Branch
+from .forms import DissertatsiyaForm, MonografiyaForm, RisolaForm, DarslikForm, QollanmaForm, LoyihaForm, JurnalForm, \
+    MaqolaForm, OtherForm, XorijiyTajribaForm
+from django.views.generic import ListView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.urls import reverse
 
 
 @login_required
@@ -94,15 +97,6 @@ def global_search(request):
     }
 
     return render(request, "global_search.html", context)
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseForbidden
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator
-from django.db.models import Q
-from django.views.decorators.csrf import csrf_exempt
 
 
 def role_required(*roles):
@@ -256,12 +250,6 @@ def resource_detail(request, model_class, instance_id, form_class, template, use
     })
 
 
-from .models import Dissertatsiya, Monografiya, Risola, Darslik, Qollanma, Loyiha, Jurnal, Maqola, Other, \
-    Xorijiy_Tajriba, Branch
-from .forms import DissertatsiyaForm, MonografiyaForm, RisolaForm, DarslikForm, QollanmaForm, LoyihaForm, JurnalForm, \
-    MaqolaForm, OtherForm, XorijiyTajribaForm
-
-
 # Kategoriya
 @csrf_exempt
 def category_list(request):
@@ -301,6 +289,699 @@ def u1_dissertatsiya_list(request):
         request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/users/dissertatsiyalar/u_dissertatsiyalar.html',
         limit_default=8, search_fields=['title', 'author', 'institution_name'], user=request.user, moderator_filter=True
     )
+
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+
+class U2DissertatsiyaListView(LoginRequiredMixin, ListView):
+    model = Dissertatsiya
+    template_name = 'kategoriya/users/dissertatsiyalar/u2_dissertatsiyalar.html'
+    context_object_name = 'dissertatsiyalar'
+    paginate_by = 8  # Sahifalash soni
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Dissertatsiyalar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Qo‘lda sahifalashni tekshirish
+        dissertatsiyalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(dissertatsiyalar, self.paginate_by)
+
+        try:
+            dissertatsiyalar = paginator.page(page)
+        except PageNotAnInteger:
+            dissertatsiyalar = paginator.page(1)
+        except EmptyPage:
+            dissertatsiyalar = paginator.page(paginator.num_pages)
+
+        context['dissertatsiyalar'] = dissertatsiyalar
+        return context
+
+
+class U2DissertatsiyaDetailView(LoginRequiredMixin, DetailView):
+    model = Dissertatsiya
+    template_name = 'kategoriya/users/dissertatsiyalar/u2_dissertatsiya_detail.html'
+    context_object_name = 'dissertatsiya'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va dissertatsiya LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu dissertatsiyani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Dissertatsiya: {self.object.title}"
+        return context
+
+
+class U2MonografiyaListView(LoginRequiredMixin, ListView):
+    model = Monografiya
+    template_name = 'kategoriya/users/monografiyalar/u2_monografiyalar.html'
+    context_object_name = 'monografiyalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Monografiyalar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda tekshirish
+        monografiyalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(monografiyalar, self.paginate_by)
+
+        try:
+            monografiyalar = paginator.page(page)
+        except PageNotAnInteger:
+            monografiyalar = paginator.page(1)
+        except EmptyPage:
+            monografiyalar = paginator.page(paginator.num_pages)
+
+        context['monografiyalar'] = monografiyalar
+        return context
+
+
+class U2MonografiyaDetailView(LoginRequiredMixin, DetailView):
+    model = Monografiya  # Dissertatsiya o‘rniga Monografiya
+    template_name = 'kategoriya/users/monografiyalar/u2_monografiyalar_detail.html'  # Template yo‘li o‘zgartirildi
+    context_object_name = 'monografiya'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va monografiya LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu monografiyani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Monografiya: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
+
+
+class U2RisolaListView(LoginRequiredMixin, ListView):
+    model = Risola
+    template_name = 'kategoriya/users/Kitob va Risola/u2_risolalar.html'
+    context_object_name = 'risolalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Risolalar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda tekshirish
+        risolalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(risolalar, self.paginate_by)
+
+        try:
+            risolalar = paginator.page(page)
+        except PageNotAnInteger:
+            risolalar = paginator.page(1)
+        except EmptyPage:
+            risolalar = paginator.page(paginator.num_pages)
+
+        context['risolalar'] = risolalar
+        return context
+
+
+class U2RisolaDetailView(LoginRequiredMixin, DetailView):
+    model = Risola  # Monografiya o‘rniga Risola
+    template_name = 'kategoriya/users/Kitob va Risola/u2_risolalar_detail.html'  # Template yo‘li o‘zgartirildi
+    context_object_name = 'risola'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va risola LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu risolani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Risola: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
+
+
+class U2DarslikListView(LoginRequiredMixin, ListView):
+    model = Darslik
+    template_name = 'kategoriya/users/Darsliklar/u2_darsliklar.html'
+    context_object_name = 'darsliklar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Darsliklar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        darsliklar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(darsliklar, self.paginate_by)
+
+        try:
+            darsliklar = paginator.page(page)
+        except PageNotAnInteger:
+            darsliklar = paginator.page(1)
+        except EmptyPage:
+            darsliklar = paginator.page(paginator.num_pages)
+
+        context['darsliklar'] = darsliklar
+        return context
+
+
+class U2DarslikDetailView(LoginRequiredMixin, DetailView):
+    model = Darslik  # Risola o‘rniga Darslik modeli
+    template_name = 'kategoriya/users/Darsliklar/u2_darsliklar_detail.html'  # Template yo‘li o‘zgartirildi
+    context_object_name = 'darslik'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va darslik LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu darslikni ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Darslik: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
+
+
+class U2QollanmaListView(LoginRequiredMixin, ListView):
+    model = Qollanma  # Model o'zgartirildi
+    template_name = 'kategoriya/users/Qollanmalar/u2_qollanmalar.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'qollanmalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Qo‘llanmalar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        qollanmalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(qollanmalar, self.paginate_by)
+
+        try:
+            qollanmalar = paginator.page(page)
+        except PageNotAnInteger:
+            qollanmalar = paginator.page(1)
+        except EmptyPage:
+            qollanmalar = paginator.page(paginator.num_pages)
+
+        context['qollanmalar'] = qollanmalar
+        return context
+
+
+class U2QollanmaDetailView(LoginRequiredMixin, DetailView):
+    model = Qollanma  # Darslik o‘rniga Qollanma modeli
+    template_name = 'kategoriya/users/Qollanmalar/u2_qollanmalar_detail.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'qollanma'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va qollanma LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu qo‘llanmani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Qo‘llanma: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
+
+
+class U2LoyihaListView(LoginRequiredMixin, ListView):
+    model = Loyiha  # Qollanma o‘rniga Loyiha modeli
+    template_name = 'kategoriya/users/Loyihalar/u2_loyihalar.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'loyihalar'
+    paginate_by = 8  # Sahifalash uchun
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Loyihalar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        loyihalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(loyihalar, self.paginate_by)
+
+        try:
+            loyihalar = paginator.page(page)
+        except PageNotAnInteger:
+            loyihalar = paginator.page(1)
+        except EmptyPage:
+            loyihalar = paginator.page(paginator.num_pages)
+
+        context['loyihalar'] = loyihalar
+        return context
+
+
+class U2LoyihaDetailView(LoginRequiredMixin, DetailView):
+    model = Loyiha  # Qollanma o‘rniga Loyiha modeli
+    template_name = 'kategoriya/users/Loyihalar/u2_loyihalar_detail.html'  # Template yo‘li o‘zgartirildi
+    context_object_name = 'loyiha'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va loyiha LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu loyihani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Loyiha: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
+
+
+class U2JurnalListView(LoginRequiredMixin, ListView):
+    model = Jurnal  # Loyiha o‘rniga Jurnal modeli
+    template_name = 'kategoriya/users/Jurnallar/u2_jurnallar.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'jurnallar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Jurnallar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        jurnallar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(jurnallar, self.paginate_by)
+
+        try:
+            jurnallar = paginator.page(page)
+        except PageNotAnInteger:
+            jurnallar = paginator.page(1)
+        except EmptyPage:
+            jurnallar = paginator.page(paginator.num_pages)
+
+        context['jurnallar'] = jurnallar
+        return context
+
+
+class U2JurnalDetailView(LoginRequiredMixin, DetailView):
+    model = Jurnal  # Loyiha o‘rniga Jurnal modeli
+    template_name = 'kategoriya/users/Jurnallar/u2_jurnallar_detail.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'jurnal'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va jurnal LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu jurnalni ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Jurnal: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
+
+
+class U2MaqolaListView(LoginRequiredMixin, ListView):
+    model = Maqola  # Jurnal o‘rniga Maqola modeli
+    template_name = 'kategoriya/users/Maqolalar/u2_maqolalar.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'maqolalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Maqolalar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        maqolalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(maqolalar, self.paginate_by)
+
+        try:
+            maqolalar = paginator.page(page)
+        except PageNotAnInteger:
+            maqolalar = paginator.page(1)
+        except EmptyPage:
+            maqolalar = paginator.page(paginator.num_pages)
+
+        context['maqolalar'] = maqolalar
+        return context
+
+
+class U2MaqolaDetailView(LoginRequiredMixin, DetailView):
+    model = Maqola  # Jurnal o‘rniga Maqola modeli
+    template_name = 'kategoriya/users/Maqolalar/u2_maqolalar_detail.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'maqola'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va maqola LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu maqolani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Maqola: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
+
+
+class U2TajribaListView(LoginRequiredMixin, ListView):
+    model = Xorijiy_Tajriba  # Maqola o‘rniga Tajriba modeli
+    template_name = 'kategoriya/users/Xorijiy_Tajribalar/u2_tajribalar.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'tajribalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Tajribalar Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        tajribalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(tajribalar, self.paginate_by)
+
+        try:
+            tajribalar = paginator.page(page)
+        except PageNotAnInteger:
+            tajribalar = paginator.page(1)
+        except EmptyPage:
+            tajribalar = paginator.page(paginator.num_pages)
+
+        context['tajribalar'] = tajribalar
+        return context
+
+
+class U2TajribaDetailView(LoginRequiredMixin, DetailView):
+    model = Xorijiy_Tajriba  # Maqola o‘rniga Tajriba modeli
+    template_name = 'kategoriya/users/Xorijiy_Tajribalar/u2_tajriba_detail.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'tajriba'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va tajriba LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu tajribani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Tajriba: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
+
+
+class U2OtherListView(LoginRequiredMixin, ListView):
+    model = Other  # Other modeli
+    template_name = 'kategoriya/users/Boshqalar/u2_otherlar.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'otherlar'  # TO'G'RILANDI
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        if user.role == 'user2':
+            queryset = queryset.exclude(degree='LEVEL1')
+        elif user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Other Roʻyxati'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        otherlar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(otherlar, self.paginate_by)
+
+        try:
+            otherlar = paginator.page(page)
+        except PageNotAnInteger:
+            otherlar = paginator.page(1)
+        except EmptyPage:
+            otherlar = paginator.page(paginator.num_pages)
+
+        context['otherlar'] = otherlar  # TO'G'RILANDI
+        return context
+
+
+class U2OtherDetailView(LoginRequiredMixin, DetailView):
+    model = Other  # Maqola o‘rniga Other modeli
+    template_name = 'kategoriya/users/Boshqalar/u2_other_detail.html'  # Template yo‘li moslashtirildi
+    context_object_name = 'other'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user2 va other LEVEL1 bo‘lsa, kirishni taqiqlash
+        if user.role == 'user2' and obj.degree == 'LEVEL1':
+            messages.error(self.request, "Sizda ushbu ma'lumotni ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Other: {self.object.title}"  # Sahifa sarlavhasi moslashtirildi
+        return context
 
 
 def u1_dissertatsiya_detail(request, dissertatsiya_id):

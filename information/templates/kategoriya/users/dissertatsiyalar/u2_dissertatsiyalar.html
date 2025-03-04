@@ -1,11 +1,11 @@
-{% extends 'users_base.html' %}
-
+{% extends 'users2_base.html' %}
 {% load static %}
+
 {% block content %}
     <!-- Search Start -->
     <div class="container-fluid bg-primary mb-5 wow fadeIn" data-wow-delay="0.1s" style="padding: 35px">
         <div class="container">
-            <form method="GET" action="{% url 'u1_monografiya_list' %}">
+            <form method="GET" action="{% url 'u2_dissertatsiya_list' %}">
                 <div class="row g-2">
                     <div class="col-md-10">
                         <div class="row g-2">
@@ -16,7 +16,7 @@
                                             name="search"
                                             class="form-control border-0 py-3"
                                             placeholder="Qidiruv..."
-                                            value="{{ request.GET.search|default:'' }}"
+                                            value="{{ search_query|default:'' }}"
                                             style="width: 1020px!important;"
                                     />
                                 </label>
@@ -32,45 +32,50 @@
     </div>
     <!-- Search End -->
 
-    <h2 style="text-align: center!important;">Monografiyalar</h2>
+    <h2 style="text-align: center;">Dissertatsiyalar</h2>
 
-    <!-- Monografiyalar ro'yxati -->
+    <!-- Dissertatsiyalar ro'yxati -->
     <div class="container">
-        {% if monografiyalar %}
-            <!-- Monografiyalar ro'yxati -->
+        {% if messages %}
+            {% for message in messages %}
+                <p class="alert alert-{{ message.tags }} text-center">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        {% if dissertatsiyalar %}
             <div class="row my-5">
-                {% for monografiya in monografiyalar %}
+                {% for dissertatsiya in dissertatsiyalar %}
                     <div class="col-lg-3 col-md-6 col-sm-12 wow fadeInUp" data-wow-delay="0.1s">
                         <a
                                 class="cat-item d-block bg-light text-center rounded p-3"
-                                href="{% url 'u1_monografiya_detail' monografiya.id %}"
+                                href="{% url 'u2_dissertatsiya_detail' dissertatsiya.id %}"
                         >
                             <div class="rounded p-3">
                                 <div class="icon mb-3">
                                     <img
                                             class="img-fluid"
                                             src="{% static 'user/u_img/icon-apartment.png' %}"
-                                            alt="Icon"
+                                            alt="Dissertatsiya ikonasi"
                                     />
                                 </div>
-                                <h6>Mavzu: {{ monografiya.title }}</h6>
-                                <p>Muallif: {{ monografiya.author }}</p>
+                                <h6>Mavzu: {{ dissertatsiya.title }}</h6>
+                                <p>Muallif: {{ dissertatsiya.author }}</p>
                             </div>
                         </a>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p style="text-align: center;">Hech qanday monografiya topilmadi.</p>
+            <p style="text-align: center;">Hech qanday dissertatsiya topilmadi.</p>
         {% endif %}
 
         <!-- Pagination -->
-        {% if monografiyalar.has_other_pages %}
-    <nav aria-label="Page navigation">
+        {% if dissertatsiyalar.has_other_pages %}
+    <nav aria-label="Sahifa navigatsiyasi">
         <ul class="pagination justify-content-center mt-4">
-            {% if monografiyalar.has_previous %}
+            {% if dissertatsiyalar.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ monografiyalar.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}" aria-label="Previous">
+                    <a class="page-link" href="?page={{ dissertatsiyalar.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}" aria-label="Oldingi">
                         <span aria-hidden="true">«</span>
                     </a>
                 </li>
@@ -80,8 +85,8 @@
                 </li>
             {% endif %}
 
-            {% for num in monografiyalar.paginator.page_range %}
-                {% if monografiyalar.number == num %}
+            {% for num in dissertatsiyalar.paginator.page_range %}
+                {% if dissertatsiyalar.number == num %}
                     <li class="page-item active">
                         <span class="page-link">{{ num }}</span>
                     </li>
@@ -92,9 +97,9 @@
                 {% endif %}
             {% endfor %}
 
-            {% if monografiyalar.has_next %}
+            {% if dissertatsiyalar.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ monografiyalar.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}" aria-label="Next">
+                    <a class="page-link" href="?page={{ dissertatsiyalar.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search|urlencode }}{% endif %}" aria-label="Keyingi">
                         <span aria-hidden="true">»</span>
                     </a>
                 </li>

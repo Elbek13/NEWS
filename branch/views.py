@@ -1,37 +1,29 @@
-from django.shortcuts import render, get_object_or_404,redirect
-from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from .models import Branch
 from .forms import BranchForm
 from django.core.paginator import Paginator
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 
+@cache_page(60 * 10)
 def branch_list(request):
     """ Filiallar ro‘yxatini ko‘rsatish uchun View """
+    limit = request.GET.get('limit', 10)  # Default 10
+    page_number = request.GET.get('page', 1)  # Default 1
 
-    # GET parametrlardan limitni olish
-    limit = request.GET.get('limit', '10')  # Default limit = '10' (string sifatida keladi)
-    page_number = request.GET.get('page', '1')  # Default sahifa = '1'
+    # Limit va page_number ni xavfsiz tarzda int ga aylantirish
+    limit = min(max(int(limit), 1), 100) if str(limit).isdigit() else 10  # 1-100 oralig‘ida cheklash
+    page_number = max(int(page_number), 1) if str(page_number).isdigit() else 1
 
-    # limitni aniq butun son shaklga o'tkazish (agar noto‘g‘ri qiymat bo‘lsa, default = 10)
-    try:
-        limit = int(limit) if limit.isdigit() and int(limit) > 0 else 10
-    except ValueError:
-        limit = 10
-
-    try:
-        page_number = int(page_number) if page_number.isdigit() and int(page_number) > 0 else 1
-    except ValueError:
-        page_number = 1
-
-    # Barcha filiallarni olish va sahifalash
+    # Filiallarni olish va sahifalash
     branches = Branch.objects.all()
     paginator = Paginator(branches, limit)
     page_obj = paginator.get_page(page_number)
 
-    # Muvaffaqiyatli xabarni olish
+    # Sessiyadan xabarni olish
     success_message = request.session.pop('success', None)
-
-    # Forma yaratish
     form = BranchForm()
 
     return render(request, 'branch_list.html', {
@@ -41,16 +33,17 @@ def branch_list(request):
     })
 
 
-
-@csrf_exempt
+@csrf_protect
 def branch_create(request):
     if request.method == "POST":
         form = BranchForm(request.POST)
         if form.is_valid():
             form.save()
+            cache.clear()  # Butun keshni tozalash (oddiy yechim)
             request.session['success'] = "Filial muvaffaqiyatli qo‘shildi!"
             return redirect('branch_list')
     return redirect('branch_list')
+
 
 @csrf_exempt
 def branch_edit(request, branch_id):
@@ -72,4 +65,3 @@ def branch_delete(request, branch_id):
         request.session['success'] = "Filial muvaffaqiyatli o‘chirildi!"
         return redirect('branch_list')
     return redirect('branch_list')
-
