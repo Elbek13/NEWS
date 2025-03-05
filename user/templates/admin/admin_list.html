@@ -1,27 +1,19 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-    {% load static %}
     <!-- Navbar -->
-    <nav
-            class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl"
-            id="navbarBlur"
-            data-scroll="false"
-    >
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur"
+         data-scroll="false">
         <div class="container-fluid py-1 px-3 pt-0">
             <nav aria-label="breadcrumb">
-                <ol
-                        class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5"
-                >
+                <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                     <li class="breadcrumb-item text-sm">
                         <a class="opacity-5 text-white" href="{% url 'dashboard' %}">Bosh Sahifa</a>
                     </li>
                     <li class="breadcrumb-item text-sm">
                         <a class="opacity-5 text-white" href="{% url 'user_list' %}">Foydalanuvchilar</a>
                     </li>
-                    <li
-                            class="breadcrumb-item text-sm text-white active"
-                            aria-current="page"
-                    >
+                    <li class="breadcrumb-item text-sm text-white active" aria-current="page">
                         Admin
                     </li>
                 </ol>
@@ -29,16 +21,19 @@
         </div>
     </nav>
 
-
     <main class="main-content position-relative border-radius-lg">
         <div class="row">
             <div class="col-12 responsive-div">
                 <!-- Notification -->
-                {% if success_message %}
-                    <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ success_message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div id="successAlert"
+                             class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show"
+                             role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
                     <script>
                         setTimeout(() => document.getElementById("successAlert").style.display = "none", 3000);
                     </script>
@@ -60,9 +55,11 @@
                                 <option value="30" {% if request.GET.limit == "30" %}selected{% endif %}>30</option>
                             </select>
                         </div>
-                        <label for="searchInput"></label><input type="text" id="searchInput"
-                                                                class="form-control w-15 mx-2"
-                                                                placeholder="Qidirish...">
+                        <form method="get" class="d-flex">
+                            <input type="text" name="search" id="searchInput" class="form-control w-100 mx-2"
+                                   value="{{ search_query }}" placeholder="Qidirish...">
+                            {#                            <button type="submit" class="btn btn-secondary">Izlash</button>#}
+                        </form>
                     </div>
 
                     <div class="card-body px-0 pt-0 pb-2">
@@ -124,7 +121,6 @@
                                         </td>
                                     </tr>
 
-
                                     <!-- Tahrirlash Modal -->
                                     <div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1"
                                          aria-labelledby="editUserModalLabel" aria-hidden="true">
@@ -134,108 +130,55 @@
                                                     <h5 class="modal-title text-center">Foydalanuvchini Tahrirlash</h5>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form method="POST" action="{% url 'moderator_edit' user.id %}">
+                                                    <form method="POST" action="{% url 'admin_edit' user.id %}">
                                                         {% csrf_token %}
+                                                        {{ form.non_field_errors }}
                                                         <div class="row">
                                                             <div class="mb-3 col-6">
-                                                                <label for="username" class="form-label">Foydalanuvchi
-                                                                    Nomi</label>
-                                                                <input type="text" class="form-control" id="username"
-                                                                       name="username"
-                                                                       value="{{ user.username }}" required>
+                                                                <label for="{{ form.username.id_for_label }}"
+                                                                       class="form-label">Foydalanuvchi Nomi</label>
+                                                                {{ form.username }}
                                                             </div>
                                                             <div class="mb-3 col-6">
-                                                                <label for="passport_number" class="form-label">Passport
-                                                                    Raqami</label>
-                                                                <input type="text" class="form-control"
-                                                                       id="passport_number"
-                                                                       name="passport_number"
-                                                                       value="{{ user.passport_number }}" required>
+                                                                <label for="{{ form.passport_number.id_for_label }}"
+                                                                       class="form-label">Passport Raqami</label>
+                                                                {{ form.passport_number }}
                                                             </div>
                                                             <div class="mb-3 col-6">
-                                                                <label for="password" class="form-label">Parol</label>
-                                                                <input type="password" class="form-control"
-                                                                       id="password"
-                                                                       name="password"
-                                                                       placeholder="Yangi parolni kiriting">
+                                                                <label for="{{ form.password.id_for_label }}"
+                                                                       class="form-label">Parol</label>
+                                                                {{ form.password }}
                                                             </div>
                                                             <div class="mb-3 col-6">
-                                                                <label for="is_active" class="form-label">Foydalanuvchi
-                                                                    Faollik Holati</label>
-                                                                <select class="form-select" id="is_active"
-                                                                        name="is_active">
-                                                                    <option value="True"
-                                                                            {% if user.is_active %}selected{% endif %}>
-                                                                        Ha
-                                                                    </option>
-                                                                    <option value="False"
-                                                                            {% if not user.is_active %}selected{% endif %}>
-                                                                        Yo‘q
-                                                                    </option>
-                                                                </select>
+                                                                <label for="{{ form.is_active.id_for_label }}"
+                                                                       class="form-label">Faolmi?</label>
+                                                                {{ form.is_active }}
                                                             </div>
                                                             <div class="mb-3 col-6">
-                                                                <label for="is_superuser" class="form-label">Superuser
-                                                                    Holati</label>
-                                                                <select class="form-select" id="is_superuser"
-                                                                        name="is_superuser">
-                                                                    <option value="True"
-                                                                            {% if user.is_superuser %}selected{% endif %}>
-                                                                        Ha
-                                                                    </option>
-                                                                    <option value="False"
-                                                                            {% if not user.is_superuser %}selected{% endif %}>
-                                                                        Yo‘q
-                                                                    </option>
-                                                                </select>
+                                                                <label for="{{ form.is_superuser.id_for_label }}"
+                                                                       class="form-label">Superuser?</label>
+                                                                {{ form.is_superuser }}
                                                             </div>
                                                             <div class="mb-3 col-6">
-                                                                <label for="is_staff" class="form-label">Admin Panelga
-                                                                    Kirish</label>
-                                                                <select class="form-select" id="is_staff"
-                                                                        name="is_staff">
-                                                                    <option value="True"
-                                                                            {% if user.is_staff %}selected{% endif %}>Ha
-                                                                    </option>
-                                                                    <option value="False"
-                                                                            {% if not user.is_staff %}selected{% endif %}>
-                                                                        Yo‘q
-                                                                    </option>
-                                                                </select>
+                                                                <label for="{{ form.is_staff.id_for_label }}"
+                                                                       class="form-label">Admin Panelga Kirish
+                                                                    Huquqi?</label>
+                                                                {{ form.is_staff }}
                                                             </div>
                                                             <div class="mb-3 col-6">
-                                                                <label for="role" class="form-label">Rol</label>
-                                                                <select class="form-select" id="role" name="role"
-                                                                        required>
-                                                                    {% for role, display in user.ROLE_CHOICES %}
-                                                                        <option value="{{ role }}"
-                                                                                {% if user.role == role %}selected{% endif %}>{{ display }}</option>
-                                                                    {% endfor %}
-                                                                </select>
-                                                            </div>
-
-                                                            <div class="mb-3 col-6">
-                                                                <label for="branch" class="form-label">Filial</label>
-                                                                <select class="form-select" id="branch" name="branch"
-                                                                        required>
-                                                                    {% for branch in branches %}
-                                                                        <option value="{{ branch.id }}"
-                                                                                {% if user.branch and user.branch.id == branch.id %}selected{% endif %}>
-                                                                            {{ branch.name }}
-                                                                        </option>
-                                                                    {% endfor %}
-                                                                </select>
+                                                                <label for="{{ form.branch.id_for_label }}"
+                                                                       class="form-label">Filial</label>
+                                                                {{ form.branch }}
                                                             </div>
                                                             <div class="mb-3 col-6">
-                                                                <label for="user_status"
-                                                                       class="form-label">Status</label>
-                                                                <select class="form-select" id="user_status"
-                                                                        name="user_status" required>
-                                                                    {% for status, display in user.USER_STATUS_CHOICES %}
-                                                                        <option value="{{ status }}"
-                                                                                {% if user.user_status == status %}selected{% endif %}>{{ display }}</option>
-                                                                    {% endfor %}
-                                                                </select>
+                                                                <label for="{{ form.user_status.id_for_label }}"
+                                                                       class="form-label">Foydalanuvchi Statusi</label>
+                                                                {{ form.user_status }}
+                                                            </div>
+                                                            <div class="mb-3 col-6">
+                                                                <label for="{{ form.role.id_for_label }}"
+                                                                       class="form-label">Rol</label>
+                                                                {{ form.role }}
                                                             </div>
                                                         </div>
                                                         <div class="d-flex justify-content-end">
@@ -247,8 +190,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-
 
                                     <!-- O‘chirish Modal -->
                                     <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1"
@@ -277,45 +218,40 @@
                                             emas
                                         </td>
                                     </tr>
-
                                 {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
                     <!-- Sahifalash -->
                     <div class="d-flex justify-content-center mt-3">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination justify-content-center">
-                                <!-- Orqaga tugmasi -->
                                 <li class="page-item {% if not users.has_previous %}disabled{% endif %}">
                                     <a class="page-link"
-                                       href="{% if users.has_previous %}?page={{ users.previous_page_number }}&limit=
-                                           {{ request.GET.limit }}{% else %}#{% endif %}"
+                                       href="{% if users.has_previous %}?page={{ users.previous_page_number }}&limit={{ request.GET.limit }}&search=
+                                           {{ search_query }}{% else %}#{% endif %}"
                                        aria-label="Previous">
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
-
-                                <!-- Sahifa raqamlari (faqat 5 ta ko‘rsatiladi) -->
                                 {% with current=users.number total=users.paginator.num_pages %}
                                     {% if total <= 5 %}
-                                        <!-- Agar umumiy sahifa soni 5 yoki undan kam bo‘lsa, hammasini ko‘rsat -->
                                         {% for num in users.paginator.page_range %}
                                             <li class="page-item {% if current == num %}active{% endif %}">
                                                 <a class="page-link text-primary font-weight-bold"
-                                                   href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
                                             </li>
                                         {% endfor %}
                                     {% else %}
-                                        <!-- Agar sahifa soni 5 dan ko‘p bo‘lsa, dinamik 5 ta raqam ko‘rsat -->
                                         {% with start=current|add:"-2" end=current|add:"2" %}
                                             {% if start < 1 %}
                                                 {% for num in users.paginator.page_range %}
                                                     {% if num <= 5 %}
                                                         <li class="page-item {% if current == num %}active{% endif %}">
                                                             <a class="page-link text-primary font-weight-bold"
-                                                               href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                                               href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
                                                         </li>
                                                     {% endif %}
                                                 {% endfor %}
@@ -324,7 +260,7 @@
                                                     {% if num > total|add:"-5" %}
                                                         <li class="page-item {% if current == num %}active{% endif %}">
                                                             <a class="page-link text-primary font-weight-bold"
-                                                               href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                                               href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
                                                         </li>
                                                     {% endif %}
                                                 {% endfor %}
@@ -333,7 +269,7 @@
                                                     {% if num >= start and num <= end %}
                                                         <li class="page-item {% if current == num %}active{% endif %}">
                                                             <a class="page-link text-primary font-weight-bold"
-                                                               href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                                               href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
                                                         </li>
                                                     {% endif %}
                                                 {% endfor %}
@@ -341,12 +277,10 @@
                                         {% endwith %}
                                     {% endif %}
                                 {% endwith %}
-
-                                <!-- Oldinga tugmasi -->
                                 <li class="page-item {% if not users.has_next %}disabled{% endif %}">
                                     <a class="page-link"
-                                       href="{% if users.has_next %}?page={{ users.next_page_number }}&limit=
-                                           {{ request.GET.limit }}{% else %}#{% endif %}"
+                                       href="{% if users.has_next %}?page={{ users.next_page_number }}&limit={{ request.GET.limit }}&search=
+                                           {{ search_query }}{% else %}#{% endif %}"
                                        aria-label="Next">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
@@ -355,13 +289,9 @@
                         </nav>
                     </div>
                 </div>
-
-
             </div>
         </div>
     </main>
-
-
 
     <!-- Yangi foydalanuvchi qo‘shish uchun modal -->
     <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
@@ -374,6 +304,7 @@
                 <div class="modal-body">
                     <form method="POST" action="{% url 'admin_create' %}">
                         {% csrf_token %}
+                        {{ form.non_field_errors }}
                         <div class="row">
                             <div class="mb-3 col-6">
                                 <label for="{{ form.username.id_for_label }}" class="form-label">Foydalanuvchi
@@ -390,23 +321,17 @@
                                 {{ form.password }}
                             </div>
                             <div class="mb-3 col-6">
-                                <label for="{{ form.is_active.id_for_label }}" class="form-label">Faolmi?
-                                    (Ha/Yo‘q)</label>
+                                <label for="{{ form.is_active.id_for_label }}" class="form-label">Faolmi?</label>
                                 {{ form.is_active }}
                             </div>
                             <div class="mb-3 col-6">
-                                <label for="{{ form.is_superuser.id_for_label }}" class="form-label">Superuser?
-                                    (Ha/Yo‘q)</label>
+                                <label for="{{ form.is_superuser.id_for_label }}" class="form-label">Superuser?</label>
                                 {{ form.is_superuser }}
                             </div>
                             <div class="mb-3 col-6">
                                 <label for="{{ form.is_staff.id_for_label }}" class="form-label">Admin Panelga Kirish
-                                    Huquqi? (Ha/Yo‘q)</label>
+                                    Huquqi?</label>
                                 {{ form.is_staff }}
-                            </div>
-                            <div class="mb-3 col-6">
-                                <label for="{{ form.role.id_for_label }}" class="form-label">Rol</label>
-                                {{ form.role }}
                             </div>
                             <div class="mb-3 col-6">
                                 <label for="{{ form.branch.id_for_label }}" class="form-label">Filial</label>
@@ -417,9 +342,13 @@
                                     Statusi</label>
                                 {{ form.user_status }}
                             </div>
+                            <div class="mb-3 col-6">
+                                <label for="{{ form.role.id_for_label }}" class="form-label">Rol</label>
+                                {{ form.role }}
+                            </div>
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-success ">Qo‘shish</button>
+                            <button type="submit" class="btn btn-success">Qo‘shish</button>
                         </div>
                     </form>
                 </div>
@@ -433,20 +362,8 @@
             let selectedLimit = this.value;
             let url = new URL(window.location.href);
             url.searchParams.set('limit', selectedLimit);
+            url.searchParams.set('page', 1); // 1-sahifaga qaytarish
             window.location.href = url.toString();
-        });
-        document.getElementById("searchInput").addEventListener("keyup", function () {
-            var searchValue = this.value.toLowerCase();
-            var tableRows = document.querySelectorAll("#userTable tbody tr");
-
-            tableRows.forEach(row => {
-                var rowText = row.innerText.toLowerCase();
-                if (rowText.includes(searchValue)) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
         });
     </script>
 {% endblock %}

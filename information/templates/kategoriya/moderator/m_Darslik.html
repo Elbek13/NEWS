@@ -130,8 +130,7 @@
                                                     <h5 class="modal-title text-center">Darsliklarni Tahrirlash</h5>
                                                 </div>
                                                 <div class="modal-body p-4">
-                                                    <form method="POST"
-                                                          action="{% url 'm_darslik_edit' darslik.id %}"
+                                                    <form method="POST" action="{% url 'm_darslik_edit' darslik.id %}"
                                                           enctype="multipart/form-data">
                                                         {% csrf_token %}
                                                         <div class="row g-3">
@@ -139,54 +138,61 @@
                                                                 <label for="title"
                                                                        class="form-label fw-bold">Mavzu</label>
                                                                 <input type="text" class="form-control" id="title"
-                                                                       name="title" value="{{ darslik.title }}">
+                                                                       name="title" value="{{ darslik.title }}"
+                                                                       placeholder="Darslik mavzusini kiriting"
+                                                                       required>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="author"
                                                                        class="form-label fw-bold">Muallif</label>
                                                                 <input type="text" class="form-control" id="author"
-                                                                       name="author" value="{{ darslik.author }}">
+                                                                       name="author" value="{{ darslik.author }}"
+                                                                       placeholder="Muallif ismini kiriting" required>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="institution_name"
                                                                        class="form-label fw-bold">Muassasa Nomi</label>
                                                                 <input type="text" class="form-control"
                                                                        id="institution_name" name="institution_name"
-                                                                       value="{{ darslik.institution_name }}">
+                                                                       value="{{ darslik.institution_name }}"
+                                                                       placeholder="Muassasa nomini kiriting">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="keywords" class="form-label fw-bold">Kalit
                                                                     So‘zlar</label>
                                                                 <input type="text" class="form-control" id="keywords"
                                                                        name="keywords"
-                                                                       value="{{ darslik.keywords }}">
+                                                                       value="{{ darslik.keywords }}"
+                                                                       placeholder="Kalit so‘zlarni kiriting">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="publication_type"
                                                                        class="form-label fw-bold">Nashr Turi</label>
                                                                 <input type="text" class="form-control"
                                                                        id="publication_type" name="publication_type"
-                                                                       value="{{ darslik.publication_type }}">
+                                                                       value="{{ darslik.publication_type }}"
+                                                                       placeholder="Nashr turini kiriting">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="publication_year"
                                                                        class="form-label fw-bold">Nashr Yili</label>
                                                                 <input type="number" class="form-control"
                                                                        id="publication_year" name="publication_year"
-                                                                       value="{{ darslik.publication_year }}">
+                                                                       value="{{ darslik.publication_year }}"
+                                                                       placeholder="YYYY (masalan, 2023)">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="description" class="form-label fw-bold">Ilm-fan
                                                                     yo‘nalishi</label>
                                                                 <textarea class="form-control" id="description"
-                                                                          name="description"
-                                                                          rows="3">{{ darslik.description }}</textarea>
+                                                                          name="description" rows="3"
+                                                                          placeholder="Ilm-fan yo‘nalishini kiriting">{{ darslik.description }}</textarea>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="content_type" class="form-label fw-bold">Anotatsiya</label>
                                                                 <textarea class="form-control" id="content_type"
-                                                                          name="content_type"
-                                                                          rows="3">{{ darslik.content_type }}</textarea>
+                                                                          name="content_type" rows="3"
+                                                                          placeholder="Anotatsiyani kiriting">{{ darslik.content_type }}</textarea>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="degree"
@@ -214,7 +220,8 @@
                                                                 <label for="issn_isbn" class="form-label fw-bold">ISSN/ISBN</label>
                                                                 <input type="text" class="form-control" id="issn_isbn"
                                                                        name="issn_isbn"
-                                                                       value="{{ darslik.issn_isbn }}">
+                                                                       value="{{ darslik.issn_isbn }}"
+                                                                       placeholder="ISSN yoki ISBN kiriting">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="id_file" class="form-label fw-bold">Darslik
@@ -223,13 +230,11 @@
                                                                        name="file">
                                                                 {% if darslik.file %}
                                                                     <small class="text-muted">
-                                                                        <a href="{{ darslik.file.url }}"
-                                                                           target="_blank" download>Hozirgi faylni
-                                                                            yuklab olish</a>
+                                                                        <a href="{{ darslik.file.url }}" target="_blank"
+                                                                           download>Hozirgi faylni yuklab olish</a>
                                                                     </small>
                                                                 {% endif %}
                                                             </div>
-
                                                             <div class="col-md-6">
                                                                 <label for="image" class="form-label fw-bold">Darslik
                                                                     Rasmi</label>
@@ -238,8 +243,8 @@
                                                                 {% if darslik.image %}
                                                                     <div class="mt-2">
                                                                         <img src="{{ darslik.image.url }}"
-                                                                             alt="Darslik Rasmi"
-                                                                             class="img-thumbnail" width="150">
+                                                                             alt="Darslik Rasmi" class="img-thumbnail"
+                                                                             width="150">
                                                                         <small class="form-text text-muted">
                                                                             <a href="{{ darslik.image.url }}"
                                                                                target="_blank" download>Hozirgi rasmni
@@ -254,7 +259,8 @@
                                                                     Maydon</label>
                                                                 <input type="text" class="form-control"
                                                                        id="additional_field" name="additional_field"
-                                                                       value="{{ darslik.additional_field }}">
+                                                                       value="{{ darslik.additional_field }}"
+                                                                       placeholder="Qo‘shimcha ma'lumot kiriting">
                                                             </div>
                                                         </div>
                                                         <div class="d-flex justify-content-end mt-4">
@@ -361,26 +367,66 @@
                         </div>
                     </div>
                     <!-- Sahifalash -->
-                    <div class="d-flex justify-content-center">
+                    <div class="d-flex justify-content-center mt-3">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination justify-content-center">
+                                <!-- Oldingi sahifaga o‘tish -->
                                 <li class="page-item {% if not darsliklar.has_previous %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if darsliklar.has_previous %}?page={{ darsliklar.previous_page_number }}&limit={{ request.GET.limit }}&search=
-                                           {{ request.GET.search }}{% else %}#{% endif %}">
+                                           {{ request.GET.search }}{% else %}#{% endif %}" aria-label="Previous">
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
-                                {% for num in darsliklar.paginator.page_range %}
-                                    <li class="page-item {% if darsliklar.number == num %}active{% endif %}">
-                                        <a class="page-link text-primary font-weight-bold"
-                                           href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search }}">{{ num }}</a>
-                                    </li>
-                                {% endfor %}
+
+                                <!-- Sahifa raqamlari (joriy sahifadan oldin va keyin 2 ta) -->
+                                {% with current=darsliklar.number total=darsliklar.paginator.num_pages %}
+                                    {% if total <= 5 %}
+                                        {% for num in darsliklar.paginator.page_range %}
+                                            <li class="page-item {% if current == num %}active{% endif %}">
+                                                <a class="page-link text-primary font-weight-bold"
+                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search }}">{{ num }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% with start=current|add:"-2" end=current|add:"2" %}
+                                            {% if start < 1 %}
+                                                {% for num in darsliklar.paginator.page_range %}
+                                                    {% if num <= 5 %}
+                                                        <li class="page-item {% if current == num %}active{% endif %}">
+                                                            <a class="page-link text-primary font-weight-bold"
+                                                               href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search }}">{{ num }}</a>
+                                                        </li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% elif end > total %}
+                                                {% for num in darsliklar.paginator.page_range %}
+                                                    {% if num > total|add:"-5" %}
+                                                        <li class="page-item {% if current == num %}active{% endif %}">
+                                                            <a class="page-link text-primary font-weight-bold"
+                                                               href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search }}">{{ num }}</a>
+                                                        </li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                {% for num in darsliklar.paginator.page_range %}
+                                                    {% if num >= start and num <= end %}
+                                                        <li class="page-item {% if current == num %}active{% endif %}">
+                                                            <a class="page-link text-primary font-weight-bold"
+                                                               href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search }}">{{ num }}</a>
+                                                        </li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endwith %}
+
+                                <!-- Keyingi sahifaga o‘tish -->
                                 <li class="page-item {% if not darsliklar.has_next %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if darsliklar.has_next %}?page={{ darsliklar.next_page_number }}&limit={{ request.GET.limit }}&search=
-                                           {{ request.GET.search }}{% else %}#{% endif %}">
+                                           {{ request.GET.search }}{% else %}#{% endif %}" aria-label="Next">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
@@ -407,13 +453,12 @@
                 <div class="modal-body p-4">
                     <form method="POST" action="{% url 'm_darslik_create' %}" enctype="multipart/form-data">
                         {% csrf_token %}
-
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">Mavzu</label>
                                 <input type="text" class="form-control" id="{{ form.title.id_for_label }}"
                                        name="{{ form.title.name }}" value="{{ form.title.value|default:'' }}"
-                                       placeholder="Mavzu matni" required>
+                                       placeholder="Darslik mavzusini kiriting" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="{{ form.author.id_for_label }}" class="form-label fw-bold">Muallif</label>
@@ -421,7 +466,6 @@
                                        name="{{ form.author.name }}" value="{{ form.author.value|default:'' }}"
                                        placeholder="Muallif ismini kiriting" required>
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.institution_name.id_for_label }}" class="form-label fw-bold">Muassasa
                                     Nomi</label>
@@ -437,15 +481,29 @@
                                        name="{{ form.keywords.name }}" value="{{ form.keywords.value|default:'' }}"
                                        placeholder="Kalit so‘zlarni kiriting">
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.publication_type.id_for_label }}" class="form-label fw-bold">Nashr
                                     Turi</label>
-                                <textarea class="form-control" id="{{ form.publication_type.id_for_label }}"
-                                          name="{{ form.publication_type.name }}" rows="3"
-                                          placeholder="Nashr turini kiriting">{{ form.publication_type.value|default:'' }}</textarea>
+                                <input type="text" class="form-control" id="{{ form.publication_type.id_for_label }}"
+                                       name="{{ form.publication_type.name }}"
+                                       value="{{ form.publication_type.value|default:'' }}"
+                                       placeholder="Nashr turini kiriting">
                             </div>
-
+                            <div class="col-md-6">
+                                <label for="{{ form.publication_year.id_for_label }}" class="form-label fw-bold">Nashr
+                                    Yili</label>
+                                <input type="number" class="form-control" id="{{ form.publication_year.id_for_label }}"
+                                       name="{{ form.publication_year.name }}"
+                                       value="{{ form.publication_year.value|default:'' }}"
+                                       placeholder="YYYY (masalan, 2023)">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">Ilm-fan
+                                    yo‘nalishi</label>
+                                <textarea class="form-control" id="{{ form.description.id_for_label }}"
+                                          name="{{ form.description.name }}" rows="3"
+                                          placeholder="Ilm-fan yo‘nalishini kiriting">{{ form.description.value|default:'' }}</textarea>
+                            </div>
                             <div class="col-md-6">
                                 <label for="{{ form.content_type.id_for_label }}"
                                        class="form-label fw-bold">Anotatsiya</label>
@@ -453,16 +511,6 @@
                                           name="{{ form.content_type.name }}" rows="3"
                                           placeholder="Anotatsiyani kiriting">{{ form.content_type.value|default:'' }}</textarea>
                             </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.publication_year.id_for_label }}" class="form-label fw-bold">Nashr
-                                    Yili</label>
-                                <input type="number" class="form-control" id="{{ form.publication_year.id_for_label }}"
-                                       name="{{ form.publication_year.name }}"
-                                       value="{{ form.publication_year.value|default:'' }}" placeholder="YYYY"
-                                       min="1900" max="2100">
-                            </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.degree.id_for_label }}" class="form-label fw-bold">Daraja</label>
                                 <select class="form-select" id="{{ form.degree.id_for_label }}"
@@ -473,7 +521,6 @@
                                     {% endfor %}
                                 </select>
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.branch.id_for_label }}" class="form-label fw-bold">Filial</label>
                                 <select class="form-select" id="{{ form.branch.id_for_label }}"
@@ -484,7 +531,6 @@
                                     {% endfor %}
                                 </select>
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.issn_isbn.id_for_label }}"
                                        class="form-label fw-bold">ISSN/ISBN</label>
@@ -492,14 +538,12 @@
                                        name="{{ form.issn_isbn.name }}" value="{{ form.issn_isbn.value|default:'' }}"
                                        placeholder="ISSN yoki ISBN kiriting">
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.file.id_for_label }}" class="form-label fw-bold">Darslik
                                     Fayli</label>
                                 <input type="file" class="form-control" id="{{ form.file.id_for_label }}"
                                        name="{{ form.file.name }}" accept=".pdf,.doc,.docx">
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.image.id_for_label }}" class="form-label fw-bold">Darslik
                                     Rasmi</label>
@@ -507,7 +551,6 @@
                                        name="{{ form.image.name }}" accept="image/*">
                             </div>
                         </div>
-
                         <div class="d-flex justify-content-end mt-4">
                             <button type="submit" class="btn btn-success px-4 py-2 fw-bold">Qo‘shish</button>
                         </div>

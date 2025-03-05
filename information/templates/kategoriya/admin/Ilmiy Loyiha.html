@@ -2,28 +2,20 @@
 {% block content %}
     {% load static %}
     <!-- Navbar -->
-    <nav
-            class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl"
-            id="navbarBlur"
-            data-scroll="false"
-    >
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur"
+         data-scroll="false">
         <div class="container-fluid py-1 px-3 pt-0">
             <nav aria-label="breadcrumb">
-                <ol
-                        class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5"
-                >
+                <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                     <li class="breadcrumb-item text-sm">
                         <a class="opacity-5 text-white" href="{% url 'dashboard' %}">Bosh Sahifa</a>
                     </li>
                     <li class="breadcrumb-item text-sm">
-                        <a class="opacity-5 text-white" href="{% url 'category_list' %}">Ketegoriyalar</a>
+                        <a class="opacity-5 text-white" href="{% url 'category_list' %}">Kategoriyalar</a>
                     </li>
-                    <li
-                            class="breadcrumb-item text-sm text-white active"
-                            aria-current="page"
-                    >
-                        Loyihalar
+                    <li class="breadcrumb-item text-sm text-white active" aria-current="page">
                     </li>
+                    Ilmiy Loyihalar
                 </ol>
             </nav>
         </div>
@@ -32,37 +24,43 @@
     <main class="main-content position-relative border-radius-lg">
         <div class="row">
             <div class="col-12 responsive-div">
-                <!-- Notification -->
-                {% if success_message %}
-                    <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ success_message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                <!-- Xabarlar -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show"
+                             role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
                     <script>
-                        setTimeout(function () {
-                            document.getElementById("successAlert").style.display = "none";
+                        setTimeout(() => {
+                            document.querySelectorAll('.alert').forEach(alert => alert.style.display = 'none');
                         }, 3000);
                     </script>
                 {% endif %}
+
                 <div class="card mb-4 mt-4 mx-3">
                     <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                        <h6>Loyiha Ro‘yxati</h6>
+                        <h6>Loyihalar Ro‘yxati</h6>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                                 data-bs-target="#addLoyihaModal">
                             Yangi Loyiha Qo‘shish
                         </button>
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <div class="mx-3">
-                            <select id="limitSelect" class="form-select w-150 pe-5  d-inline-block">
+                    <div class="d-flex justify-content-between mx-3 my-2">
+                        <div class="mx-1">
+                            <select id="limitSelect" class="form-select w-100 me-3">
                                 <option value="10" {% if request.GET.limit == "10" %}selected{% endif %}>10</option>
                                 <option value="20" {% if request.GET.limit == "20" %}selected{% endif %}>20</option>
-                                <option value="30" {% if request.GET.limit == "30" %}selected{% endif %}>30</option>
+                                <option value="50" {% if request.GET.limit == "50" %}selected{% endif %}>50</option>
                             </select>
                         </div>
-                        <label for="searchInput"></label><input type="text" id="searchInput"
-                                                                class="form-control w-15 me-4"
-                                                                placeholder="Qidirish...">
+                        <form method="get" class="d-flex">
+                            <input type="text" id="searchInput" name="search" class="form-control w-100 me-2"
+                                   placeholder="Qidirish..." value="{{ search_query }}">
+                            {#                            <button type="submit" class="btn btn-outline-primary">Qidirish</button>#}
+                        </form>
                     </div>
 
                     <div class="card-body px-0 pt-0 pb-2">
@@ -85,7 +83,7 @@
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
                                         Daraja
                                     </th>
-                                    <th class="text-uppercase px-5 text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
                                         Harakatlar
                                     </th>
                                 </tr>
@@ -94,34 +92,24 @@
                                 {% for loyiha in loyihalar %}
                                     <tr>
                                         <td>
-                                            <div class="d-flex px-2">
-                                                <div class="my-auto">
-                                                    <h6 class="mb-0 mx-3 text-sm">{{ loyiha.title }}</h6>
-                                                </div>
-                                            </div>
+                                            <div class="d-flex px-2"><h6
+                                                    class="mb-0 mx-3 text-sm">{{ loyiha.title }}</h6></div>
                                         </td>
-                                        <td>
-                                            <p class="text-sm font-weight-bold mb-0">{{ loyiha.author }}</p>
-                                        </td>
-                                        <td>
-                                            <p class="text-sm font-weight-bold mb-0">{{ loyiha.institution_name }}</p>
+                                        <td><p class="text-sm font-weight-bold mb-0">{{ loyiha.author }}</p></td>
+                                        <td><p class="text-sm font-weight-bold mb-0">{{ loyiha.institution_name }}</p>
                                         </td>
                                         <td>
                                             <p class="text-sm font-weight-bold mb-0">{{ loyiha.publication_year|default:"--" }}</p>
                                         </td>
-                                        <td>
-                                            <span class="text-xs font-weight-bold">
-                                                {{ loyiha.get_degree_display|default:"--" }}
-                                            </span>
+                                        <td><span
+                                                class="text-xs font-weight-bold">{{ loyiha.get_degree_display|default:"--" }}</span>
                                         </td>
                                         <td class="align-middle">
                                             <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                                    data-bs-target="#editLoyihaModal{{ loyiha.id }}">
-                                                Tahrirlash
+                                                    data-bs-target="#editLoyihaModal{{ loyiha.id }}">Tahrirlash
                                             </button>
                                             <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                                                    data-bs-target="#deleteLoyihaModal{{ loyiha.id }}">
-                                                O‘chirish
+                                                    data-bs-target="#deleteLoyihaModal{{ loyiha.id }}">O‘chirish
                                             </button>
                                             <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
                                                     data-bs-target="#loyihaModal{{ loyiha.id }}">
@@ -130,18 +118,16 @@
                                         </td>
                                     </tr>
 
-
                                     <!-- Tahrirlash Modal -->
-                                    <div class="modal fade" id="editLoyihaModal{{ loyiha.id }}"
-                                         tabindex="-1" aria-labelledby="editDasrlikModalLabel" aria-hidden="true">
+                                    <div class="modal fade" id="editLoyihaModal{{ loyiha.id }}" tabindex="-1"
+                                         aria-labelledby="editLoyihaModalLabel" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered modal-lg">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-primary text-white d-flex justify-content-center">
-                                                    <h5 class="modal-title text-center">Loyihalarni Tahrirlash</h5>
+                                                    <h5 class="modal-title text-center">Loyihani Tahrirlash</h5>
                                                 </div>
                                                 <div class="modal-body p-4">
-                                                    <form method="POST"
-                                                          action="{% url 'loyiha_edit' loyiha.id %}"
+                                                    <form method="POST" action="{% url 'loyiha_edit' loyiha.id %}"
                                                           enctype="multipart/form-data">
                                                         {% csrf_token %}
                                                         <div class="row g-3">
@@ -149,54 +135,60 @@
                                                                 <label for="title"
                                                                        class="form-label fw-bold">Mavzu</label>
                                                                 <input type="text" class="form-control" id="title"
-                                                                       name="title" value="{{ loyiha.title }}">
+                                                                       name="title" value="{{ loyiha.title }}"
+                                                                       placeholder="Loyiha mavzusini kiriting"
+                                                                       required>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="author"
                                                                        class="form-label fw-bold">Muallif</label>
                                                                 <input type="text" class="form-control" id="author"
-                                                                       name="author" value="{{ loyiha.author }}">
+                                                                       name="author" value="{{ loyiha.author }}"
+                                                                       placeholder="Muallif ismini kiriting" required>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="institution_name"
                                                                        class="form-label fw-bold">Muassasa Nomi</label>
                                                                 <input type="text" class="form-control"
                                                                        id="institution_name" name="institution_name"
-                                                                       value="{{ loyiha.institution_name }}">
+                                                                       value="{{ loyiha.institution_name }}"
+                                                                       placeholder="Muassasa nomini kiriting">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="keywords" class="form-label fw-bold">Kalit
                                                                     So‘zlar</label>
                                                                 <input type="text" class="form-control" id="keywords"
-                                                                       name="keywords"
-                                                                       value="{{ loyiha.keywords }}">
+                                                                       name="keywords" value="{{ loyiha.keywords }}"
+                                                                       placeholder="Kalit so‘zlarni kiriting">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="publication_type"
                                                                        class="form-label fw-bold">Nashr Turi</label>
                                                                 <input type="text" class="form-control"
                                                                        id="publication_type" name="publication_type"
-                                                                       value="{{ loyiha.publication_type }}">
+                                                                       value="{{ loyiha.publication_type }}"
+                                                                       placeholder="Nashr turini kiriting">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="publication_year"
                                                                        class="form-label fw-bold">Nashr Yili</label>
                                                                 <input type="number" class="form-control"
                                                                        id="publication_year" name="publication_year"
-                                                                       value="{{ loyiha.publication_year }}">
+                                                                       value="{{ loyiha.publication_year }}"
+                                                                       placeholder="YYYY (masalan, 2023)">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="description" class="form-label fw-bold">Ilm-fan
                                                                     yo‘nalishi</label>
                                                                 <textarea class="form-control" id="description"
-                                                                          name="description"
-                                                                          rows="3">{{ loyiha.description }}</textarea>
+                                                                          name="description" rows="3"
+                                                                          placeholder="Ilm-fan yo‘nalishini kiriting">{{ loyiha.description }}</textarea>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="content_type" class="form-label fw-bold">Anotatsiya</label>
                                                                 <textarea class="form-control" id="content_type"
-                                                                          name="content_type"
-                                                                          rows="3">{{ loyiha.content_type }}</textarea>
+                                                                          name="content_type" rows="3"
+                                                                          placeholder="Anotatsiyani kiriting">{{ loyiha.content_type }}</textarea>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="degree"
@@ -223,8 +215,8 @@
                                                             <div class="col-md-6">
                                                                 <label for="issn_isbn" class="form-label fw-bold">ISSN/ISBN</label>
                                                                 <input type="text" class="form-control" id="issn_isbn"
-                                                                       name="issn_isbn"
-                                                                       value="{{ loyiha.issn_isbn }}">
+                                                                       name="issn_isbn" value="{{ loyiha.issn_isbn }}"
+                                                                       placeholder="ISSN yoki ISBN kiriting">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label for="id_file" class="form-label fw-bold">Loyiha
@@ -233,13 +225,11 @@
                                                                        name="file">
                                                                 {% if loyiha.file %}
                                                                     <small class="text-muted">
-                                                                        <a href="{{ loyiha.file.url }}"
-                                                                           target="_blank" download>Hozirgi faylni
-                                                                            yuklab olish</a>
+                                                                        <a href="{{ loyiha.file.url }}" target="_blank"
+                                                                           download>Hozirgi faylni yuklab olish</a>
                                                                     </small>
                                                                 {% endif %}
                                                             </div>
-
                                                             <div class="col-md-6">
                                                                 <label for="image" class="form-label fw-bold">Loyiha
                                                                     Rasmi</label>
@@ -248,8 +238,8 @@
                                                                 {% if loyiha.image %}
                                                                     <div class="mt-2">
                                                                         <img src="{{ loyiha.image.url }}"
-                                                                             alt="Loyiha Rasmi"
-                                                                             class="img-thumbnail" width="150">
+                                                                             alt="Loyiha Rasmi" class="img-thumbnail"
+                                                                             width="150">
                                                                         <small class="form-text text-muted">
                                                                             <a href="{{ loyiha.image.url }}"
                                                                                target="_blank" download>Hozirgi rasmni
@@ -264,7 +254,8 @@
                                                                     Maydon</label>
                                                                 <input type="text" class="form-control"
                                                                        id="additional_field" name="additional_field"
-                                                                       value="{{ loyiha.additional_field }}">
+                                                                       value="{{ loyiha.additional_field }}"
+                                                                       placeholder="Qo‘shimcha ma'lumot kiriting">
                                                             </div>
                                                         </div>
                                                         <div class="d-flex justify-content-end mt-4">
@@ -278,23 +269,21 @@
                                         </div>
                                     </div>
 
-                                    <!-- Modal oynasi -->
+                                    <!-- Ko‘rish Modal -->
                                     <div class="modal fade" id="loyihaModal{{ loyiha.id }}" tabindex="-1"
-                                         aria-labelledby="loyihaModalLabel{{ loyiha.id }}"
-                                         aria-hidden="true">
+                                         aria-labelledby="loyihaModalLabel{{ loyiha.id }}" aria-hidden="true">
                                         <div class="modal-dialog modal-lg modal-dialog-centered">
                                             <div class="modal-content shadow-lg"
                                                  style="border-radius: 15px; overflow: hidden;">
                                                 <div class="modal-header bg-primary text-white">
-                                                    <h5 class="modal-title"
-                                                        id="loyihaModalLabel{{ loyiha.id }}">Loyiha
+                                                    <h5 class="modal-title" id="loyihaModalLabel{{ loyiha.id }}">
+                                                        Loyiha
                                                         ma'lumotlari</h5>
                                                     <button type="button" class="btn-close btn-close-white"
                                                             data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body p-4">
                                                     <div class="row g-4">
-                                                        <!-- Rasmi uchun chap tomon -->
                                                         <div class="col-md-6">
                                                             <h6 class="fw-bold text-dark">Fayl Rasmi</h6>
                                                             {% if loyiha.image %}
@@ -308,9 +297,8 @@
                                                                 </div>
                                                             {% endif %}
                                                         </div>
-                                                        <!-- Fayl turi uchun o‘ng tomon -->
                                                         <div class="col-md-6">
-                                                            <h6 class="fw-bold text-dark">Fayl haqida malumot::</h6>
+                                                            <h6 class="fw-bold text-dark">Fayl haqida ma'lumot:</h6>
                                                             <p class="bg-light p-3 rounded shadow-sm"
                                                                style="border: 1px solid #e9ecef;">{{ loyiha.content_type|default:"Ma'lumot yo‘q" }}</p>
                                                         </div>
@@ -335,10 +323,8 @@
                                         </div>
                                     </div>
 
-
                                     <!-- O‘chirish Modal -->
-                                    <div class="modal fade" id="deleteLoyihaModal{{ loyiha.id }}"
-                                         tabindex="-1"
+                                    <div class="modal fade" id="deleteLoyihaModal{{ loyiha.id }}" tabindex="-1"
                                          aria-labelledby="deleteLoyihaModalLabel" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
@@ -348,10 +334,9 @@
                                                             aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <p>Haqiqatan ham <b>{{ loyiha.title }}</b> ni
-                                                        o‘chirmoqchimisiz?</p>
-                                                    <form method="POST"
-                                                          action="{% url 'loyiha_delete' loyiha.id %}">
+                                                    <p>Haqiqatan ham <b>{{ loyiha.title }}</b> ni o‘chirmoqchimisiz?
+                                                    </p>
+                                                    <form method="POST" action="{% url 'loyiha_delete' loyiha.id %}">
                                                         {% csrf_token %}
                                                         <button type="submit" class="btn btn-danger">O‘chirish</button>
                                                     </form>
@@ -359,54 +344,86 @@
                                             </div>
                                         </div>
                                     </div>
-
                                 {% empty %}
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted">Hozircha Malumotlar mavjud
+                                        <td colspan="6" class="text-center text-muted">Hozircha ma'lumotlar mavjud
                                             emas
                                         </td>
                                     </tr>
-
                                 {% endfor %}
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                    <!-- Sahifalash -->
-                    <div class="d-flex justify-content-center">
-                        <nav aria-label="Page navigation example">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item {% if not users.has_previous %}disabled{% endif %}">
-                                    <a class="page-link"
-                                       href="{% if users.has_previous %}?page={{ users.previous_page_number }}&limit=
-                                           {{ request.GET.limit }}{% else %}#{% endif %}">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </a>
-                                </li>
-                                {% for num in users.paginator.page_range %}
-                                    <li class="page-item {% if users.number == num %}active{% endif %}">
-                                        <a class="page-link text-primary font-weight-bold"
-                                           href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
-                                    </li>
-                                {% endfor %}
-                                <li class="page-item {% if not users.has_next %}disabled{% endif %}">
-                                    <a class="page-link"
-                                       href="{% if users.has_next %}?page={{ users.next_page_number }}&limit=
-                                           {{ request.GET.limit }}{% else %}#{% endif %}">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
+
+                        <!-- Pagination -->
+                        {% if loyihalar.has_other_pages %}
+                            <div class="d-flex justify-content-center mt-3">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item {% if not loyihalar.has_previous %}disabled{% endif %}">
+                                            <a class="page-link"
+                                               href="{% if loyihalar.has_previous %}?page={{ loyihalar.previous_page_number }}&limit={{ request.GET.limit }}&search=
+                                                   {{ search_query }}{% else %}#{% endif %}" aria-label="Previous">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                        {% with current=loyihalar.number total=total_pages %}
+                                            {% if total <= 5 %}
+                                                {% for num in loyihalar.paginator.page_range %}
+                                                    <li class="page-item {% if current == num %}active{% endif %}">
+                                                        <a class="page-link text-primary font-weight-bold"
+                                                           href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
+                                                    </li>
+                                                {% endfor %}
+                                            {% else %}
+                                                {% with start=current|add:"-2" end=current|add:"2" %}
+                                                    {% if start < 1 %}
+                                                        {% for num in loyihalar.paginator.page_range %}
+                                                            {% if num <= 5 %}
+                                                                <li class="page-item {% if current == num %}active{% endif %}">
+                                                                    <a class="page-link text-primary font-weight-bold"
+                                                                       href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
+                                                                </li>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% elif end > total %}
+                                                        {% for num in loyihalar.paginator.page_range %}
+                                                            {% if num > total|add:"-5" %}
+                                                                <li class="page-item {% if current == num %}active{% endif %}">
+                                                                    <a class="page-link text-primary font-weight-bold"
+                                                                       href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
+                                                                </li>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        {% for num in loyihalar.paginator.page_range %}
+                                                            {% if num >= start and num <= end %}
+                                                                <li class="page-item {% if current == num %}active{% endif %}">
+                                                                    <a class="page-link text-primary font-weight-bold"
+                                                                       href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
+                                                                </li>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endwith %}
+                                        <li class="page-item {% if not loyihalar.has_next %}disabled{% endif %}">
+                                            <a class="page-link"
+                                               href="{% if loyihalar.has_next %}?page={{ loyihalar.next_page_number }}&limit={{ request.GET.limit }}&search=
+                                                   {{ search_query }}{% else %}#{% endif %}" aria-label="Next">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
-
-
             </div>
         </div>
     </main>
-
-
 
     <!-- Yangi Loyiha qo‘shish uchun modal -->
     <div class="modal fade" id="addLoyihaModal" tabindex="-1" aria-labelledby="addLoyihaModalLabel"
@@ -421,13 +438,12 @@
                 <div class="modal-body p-4">
                     <form method="POST" action="{% url 'loyiha_create' %}" enctype="multipart/form-data">
                         {% csrf_token %}
-
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">Mavzu</label>
                                 <input type="text" class="form-control" id="{{ form.title.id_for_label }}"
                                        name="{{ form.title.name }}" value="{{ form.title.value|default:'' }}"
-                                       placeholder="Mavzu matni" required>
+                                       placeholder="Loyiha mavzusini kiriting" required>
                             </div>
                             <div class="col-md-6">
                                 <label for="{{ form.author.id_for_label }}" class="form-label fw-bold">Muallif</label>
@@ -435,7 +451,6 @@
                                        name="{{ form.author.name }}" value="{{ form.author.value|default:'' }}"
                                        placeholder="Muallif ismini kiriting" required>
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.institution_name.id_for_label }}" class="form-label fw-bold">Muassasa
                                     Nomi</label>
@@ -451,15 +466,29 @@
                                        name="{{ form.keywords.name }}" value="{{ form.keywords.value|default:'' }}"
                                        placeholder="Kalit so‘zlarni kiriting">
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.publication_type.id_for_label }}" class="form-label fw-bold">Nashr
                                     Turi</label>
-                                <textarea class="form-control" id="{{ form.publication_type.id_for_label }}"
-                                          name="{{ form.publication_type.name }}" rows="3"
-                                          placeholder="Nashr turini kiriting">{{ form.publication_type.value|default:'' }}</textarea>
+                                <input type="text" class="form-control" id="{{ form.publication_type.id_for_label }}"
+                                       name="{{ form.publication_type.name }}"
+                                       value="{{ form.publication_type.value|default:'' }}"
+                                       placeholder="Nashr turini kiriting">
                             </div>
-
+                            <div class="col-md-6">
+                                <label for="{{ form.publication_year.id_for_label }}" class="form-label fw-bold">Nashr
+                                    Yili</label>
+                                <input type="number" class="form-control" id="{{ form.publication_year.id_for_label }}"
+                                       name="{{ form.publication_year.name }}"
+                                       value="{{ form.publication_year.value|default:'' }}"
+                                       placeholder="YYYY (masalan, 2023)">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">Ilm-fan
+                                    yo‘nalishi</label>
+                                <textarea class="form-control" id="{{ form.description.id_for_label }}"
+                                          name="{{ form.description.name }}" rows="3"
+                                          placeholder="Ilm-fan yo‘nalishini kiriting">{{ form.description.value|default:'' }}</textarea>
+                            </div>
                             <div class="col-md-6">
                                 <label for="{{ form.content_type.id_for_label }}"
                                        class="form-label fw-bold">Anotatsiya</label>
@@ -467,16 +496,6 @@
                                           name="{{ form.content_type.name }}" rows="3"
                                           placeholder="Anotatsiyani kiriting">{{ form.content_type.value|default:'' }}</textarea>
                             </div>
-
-                            <div class="col-md-6">
-                                <label for="{{ form.publication_year.id_for_label }}" class="form-label fw-bold">Nashr
-                                    Yili</label>
-                                <input type="number" class="form-control" id="{{ form.publication_year.id_for_label }}"
-                                       name="{{ form.publication_year.name }}"
-                                       value="{{ form.publication_year.value|default:'' }}" placeholder="YYYY"
-                                       min="1900" max="2100">
-                            </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.degree.id_for_label }}" class="form-label fw-bold">Daraja</label>
                                 <select class="form-select" id="{{ form.degree.id_for_label }}"
@@ -487,7 +506,6 @@
                                     {% endfor %}
                                 </select>
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.branch.id_for_label }}" class="form-label fw-bold">Filial</label>
                                 <select class="form-select" id="{{ form.branch.id_for_label }}"
@@ -498,7 +516,6 @@
                                     {% endfor %}
                                 </select>
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.issn_isbn.id_for_label }}"
                                        class="form-label fw-bold">ISSN/ISBN</label>
@@ -506,14 +523,12 @@
                                        name="{{ form.issn_isbn.name }}" value="{{ form.issn_isbn.value|default:'' }}"
                                        placeholder="ISSN yoki ISBN kiriting">
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.file.id_for_label }}" class="form-label fw-bold">Loyiha
                                     Fayli</label>
                                 <input type="file" class="form-control" id="{{ form.file.id_for_label }}"
                                        name="{{ form.file.name }}" accept=".pdf,.doc,.docx">
                             </div>
-
                             <div class="col-md-6">
                                 <label for="{{ form.image.id_for_label }}" class="form-label fw-bold">Loyiha
                                     Rasmi</label>
@@ -521,7 +536,6 @@
                                        name="{{ form.image.name }}" accept="image/*">
                             </div>
                         </div>
-
                         <div class="d-flex justify-content-end mt-4">
                             <button type="submit" class="btn btn-success px-4 py-2 fw-bold">Qo‘shish</button>
                         </div>
@@ -531,31 +545,14 @@
         </div>
     </div>
 
-
-
-    <!-- Bootstrap JS (shablon oxiriga qo‘shing) -->
-    <script src="{% static 'user/js/bundle.min.js' %}"></script>
     <!-- JavaScript -->
     <script>
         document.getElementById('limitSelect').addEventListener('change', function () {
-            let selectedLimit = this.value;
-            let url = new URL(window.location.href);
+            const selectedLimit = this.value;
+            const url = new URL(window.location.href);
             url.searchParams.set('limit', selectedLimit);
+            url.searchParams.set('page', 1);
             window.location.href = url.toString();
         });
-        document.getElementById("searchInput").addEventListener("keyup", function () {
-            var searchValue = this.value.toLowerCase();
-            var tableRows = document.querySelectorAll("#userTable tbody tr");
-
-            tableRows.forEach(row => {
-                var rowText = row.innerText.toLowerCase();
-                if (rowText.includes(searchValue)) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        });
     </script>
-
 {% endblock %}

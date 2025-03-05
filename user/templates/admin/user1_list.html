@@ -289,7 +289,7 @@
                     </div>
                     <!-- Sahifalash -->
                     <div class="d-flex justify-content-center mt-3">
-                        <nav aria-label="Page navigation example">
+                        <nav aria-label="Page navigation">
                             <ul class="pagination justify-content-center">
                                 <!-- Orqaga tugmasi -->
                                 <li class="page-item {% if not users.has_previous %}disabled{% endif %}">
@@ -301,48 +301,35 @@
                                     </a>
                                 </li>
 
-                                <!-- Sahifa raqamlari (faqat 5 ta ko‘rsatiladi) -->
+                                <!-- Oldingi 5 ta sahifa raqamlari -->
                                 {% with current=users.number total=users.paginator.num_pages %}
-                                    {% if total <= 5 %}
-                                        <!-- Agar umumiy sahifa soni 5 yoki undan kam bo‘lsa, hammasini ko‘rsat -->
+                                    {% if current > 1 %}
                                         {% for num in users.paginator.page_range %}
-                                            <li class="page-item {% if current == num %}active{% endif %}">
-                                                <a class="page-link text-primary font-weight-bold"
-                                                   href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
-                                            </li>
-                                        {% endfor %}
-                                    {% else %}
-                                        <!-- Agar sahifa soni 5 dan ko‘p bo‘lsa, dinamik 5 ta raqam ko‘rsat -->
-                                        {% with start=current|add:"-2" end=current|add:"2" %}
-                                            {% if start < 1 %}
-                                                {% for num in users.paginator.page_range %}
-                                                    {% if num <= 5 %}
-                                                        <li class="page-item {% if current == num %}active{% endif %}">
-                                                            <a class="page-link text-primary font-weight-bold"
-                                                               href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
-                                                        </li>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            {% elif end > total %}
-                                                {% for num in users.paginator.page_range %}
-                                                    {% if num > total|add:"-5" %}
-                                                        <li class="page-item {% if current == num %}active{% endif %}">
-                                                            <a class="page-link text-primary font-weight-bold"
-                                                               href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
-                                                        </li>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            {% else %}
-                                                {% for num in users.paginator.page_range %}
-                                                    {% if num >= start and num <= end %}
-                                                        <li class="page-item {% if current == num %}active{% endif %}">
-                                                            <a class="page-link text-primary font-weight-bold"
-                                                               href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
-                                                        </li>
-                                                    {% endif %}
-                                                {% endfor %}
+                                            {% if num < current and num > current|add:-6 %}
+                                                <li class="page-item">
+                                                    <a class="page-link"
+                                                       href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                                </li>
                                             {% endif %}
-                                        {% endwith %}
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    <!-- Joriy sahifa -->
+                                    <li class="page-item active">
+                                        <a class="page-link"
+                                           href="?page={{ current }}&limit={{ request.GET.limit }}">{{ current }}</a>
+                                    </li>
+
+                                    <!-- Keyingi sahifalar uchun tugma -->
+                                    {% if current < total %}
+                                        {% for num in users.paginator.page_range %}
+                                            {% if num > current and num <= current|add:5 %}
+                                                <li class="page-item">
+                                                    <a class="page-link"
+                                                       href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
                                     {% endif %}
                                 {% endwith %}
 

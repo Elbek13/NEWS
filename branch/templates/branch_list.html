@@ -2,24 +2,16 @@
 {% load static %}
 {% block content %}
     <!-- Navbar -->
-    <nav
-            class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl"
-            id="navbarBlur"
-            data-scroll="false"
-    >
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur"
+         data-scroll="false">
         <div class="container-fluid py-1 px-3 pt-0">
             <nav aria-label="breadcrumb">
-                <ol
-                        class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5"
-                >
+                <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                     <li class="breadcrumb-item text-sm">
                         <a class="opacity-5 text-white" href="{% url 'dashboard' %}">Bosh Sahifa</a>
                     </li>
-                    <li
-                            class="breadcrumb-item text-sm text-white active"
-                            aria-current="page"
-                    >
-                        Filallar
+                    <li class="breadcrumb-item text-sm text-white active" aria-current="page">
+                        Filiallar
                     </li>
                 </ol>
             </nav>
@@ -28,11 +20,15 @@
     <main class="main-content position-relative border-radius-lg">
         <div class="container-fluid py-4">
             <!-- Notification -->
-            {% if success_message %}
-                <div id="successAlert" class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ success_message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div id="successAlert"
+                         class="alert alert-{% if message.tags == 'success' %}success{% else %}danger{% endif %} alert-dismissible fade show"
+                         role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
                 <script>
                     setTimeout(function () {
                         document.getElementById("successAlert").style.display = "none";
@@ -52,17 +48,20 @@
                         </div>
                         <div class="d-flex justify-content-between">
                             <div class="mx-3">
-                                <label for="limitSelect"></label><select id="limitSelect"
-                                                                         class="form-select w-150 pe-5  d-inline-block">
-                                <option value="10" {% if request.GET.limit == "10" %}selected{% endif %}>10</option>
-                                <option value="20" {% if request.GET.limit == "20" %}selected{% endif %}>20</option>
-                                <option value="30" {% if request.GET.limit == "30" %}selected{% endif %}>30</option>
-                            </select>
+                                <label for="limitSelect"></label>
+                                <select id="limitSelect" class="form-select w-150 pe-5 d-inline-block">
+                                    <option value="10" {% if request.GET.limit == "10" %}selected{% endif %}>10</option>
+                                    <option value="20" {% if request.GET.limit == "20" %}selected{% endif %}>20</option>
+                                    <option value="30" {% if request.GET.limit == "30" %}selected{% endif %}>30</option>
+                                </select>
                             </div>
-                            <div style="width: 200px!important; height: 50px!important;"><label
-                                    for="searchInput"></label><input type="text" id="searchInput"
-                                                                     class="form-control w-85 me-4"
-                                                                     placeholder="Qidirish..."></div>
+                            <div style="width: 200px!important; height: 50px!important;">
+                                <form method="get" class="d-flex">
+                                    <input type="text" name="search" id="searchInput" class="form-control w-85 me-2"
+                                           value="{{ search_query }}" placeholder="Qidirish...">
+{#                                    <button type="submit" class="btn btn-secondary">Izlash</button>#}
+                                </form>
+                            </div>
                         </div>
                         <div class="card-body px-0 pt-0 pb-2">
                             <div class="table-responsive p-0">
@@ -100,12 +99,10 @@
                                             </td>
                                             <td class="align-middle text-center">
                                                 <button class="btn btn-warning" data-bs-toggle="modal"
-                                                        data-bs-target="#editFilialModal{{ branch.id }}">
-                                                    Tahrirlash
+                                                        data-bs-target="#editFilialModal{{ branch.id }}">Tahrirlash
                                                 </button>
                                                 <button class="btn btn-danger" data-bs-toggle="modal"
-                                                        data-bs-target="#deleteFilialModal{{ branch.id }}">
-                                                    O‘chirish
+                                                        data-bs-target="#deleteFilialModal{{ branch.id }}">O‘chirish
                                                 </button>
                                             </td>
                                         </tr>
@@ -124,10 +121,8 @@
                                                             {% csrf_token %}
                                                             <div class="mb-3">
                                                                 <label class="form-label">Filial nomi</label>
-                                                                <label>
-                                                                    <input type="text" class="form-control" name="name"
-                                                                           value="{{ branch.name }}" required>
-                                                                </label>
+                                                                <input type="text" class="form-control" name="name"
+                                                                       value="{{ branch.name }}" required>
                                                             </div>
                                                             <button type="submit" class="btn btn-success">Saqlash
                                                             </button>
@@ -170,26 +165,65 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-center">
+
+                        <!-- Yangilangan sahifalash -->
+                        <div class="d-flex justify-content-center mt-3">
                             <nav aria-label="Page navigation example">
                                 <ul class="pagination justify-content-center">
                                     <li class="page-item {% if not branches.has_previous %}disabled{% endif %}">
                                         <a class="page-link"
-                                           href="{% if branches.has_previous %}?page={{ branches.previous_page_number }}&limit=
-                                               {{ request.GET.limit }}{% else %}#{% endif %}">
+                                           href="{% if branches.has_previous %}?page={{ branches.previous_page_number }}&limit={{ request.GET.limit }}&search=
+                                               {{ search_query }}{% else %}#{% endif %}"
+                                           aria-label="Previous">
                                             <i class="fas fa-chevron-left"></i>
                                         </a>
                                     </li>
-                                    {% for num in branches.paginator.page_range %}
-                                        <li class="page-item {% if branches.number == num %}active{% endif %}">
-                                            <a class="page-link text-primary font-weight-bold"
-                                               href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
-                                        </li>
-                                    {% endfor %}
+                                    {% with current=branches.number total=branches.paginator.num_pages %}
+                                        {% if total <= 5 %}
+                                            {% for num in branches.paginator.page_range %}
+                                                <li class="page-item {% if current == num %}active{% endif %}">
+                                                    <a class="page-link text-primary font-weight-bold"
+                                                       href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
+                                                </li>
+                                            {% endfor %}
+                                        {% else %}
+                                            {% with start=current|add:"-2" end=current|add:"2" %}
+                                                {% if start < 1 %}
+                                                    {% for num in branches.paginator.page_range %}
+                                                        {% if num <= 5 %}
+                                                            <li class="page-item {% if current == num %}active{% endif %}">
+                                                                <a class="page-link text-primary font-weight-bold"
+                                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
+                                                            </li>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% elif end > total %}
+                                                    {% for num in branches.paginator.page_range %}
+                                                        {% if num > total|add:"-5" %}
+                                                            <li class="page-item {% if current == num %}active{% endif %}">
+                                                                <a class="page-link text-primary font-weight-bold"
+                                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
+                                                            </li>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    {% for num in branches.paginator.page_range %}
+                                                        {% if num >= start and num <= end %}
+                                                            <li class="page-item {% if current == num %}active{% endif %}">
+                                                                <a class="page-link text-primary font-weight-bold"
+                                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query }}">{{ num }}</a>
+                                                            </li>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    {% endwith %}
                                     <li class="page-item {% if not branches.has_next %}disabled{% endif %}">
                                         <a class="page-link"
-                                           href="{% if branches.has_next %}?page={{ branches.next_page_number }}&limit=
-                                               {{ request.GET.limit }}{% else %}#{% endif %}">
+                                           href="{% if branches.has_next %}?page={{ branches.next_page_number }}&limit={{ request.GET.limit }}&search=
+                                               {{ search_query }}{% else %}#{% endif %}"
+                                           aria-label="Next">
                                             <i class="fas fa-chevron-right"></i>
                                         </a>
                                     </li>
@@ -201,11 +235,6 @@
             </div>
         </div>
     </main>
-
-
-
-
-
 
     <!-- Filial qo'shish uchun Modal -->
     <div class="modal fade" id="addFilialModal" tabindex="-1" aria-labelledby="addFilialModalLabel" aria-hidden="true">
@@ -231,27 +260,6 @@
     </div>
 
     <script>
-        // Qidiruv funksiyasi
-
-        document.getElementById('searchInput').addEventListener('keyup', function () {
-            let searchText = this.value.toLowerCase();
-            let rows = document.querySelectorAll('tbody tr');
-
-            rows.forEach(row => {
-                let branchNameElement = row.querySelector('.my-auto h6');
-
-                if (branchNameElement) {
-                    let branchName = branchNameElement.textContent.toLowerCase();
-                    if (branchName.includes(searchText)) {
-                        row.style.display = '';  // Ko‘rsatish
-                    } else {
-                        row.style.display = 'none';  // Yashirish
-                    }
-                }
-            });
-        });
-
-
         // Limitni o'zgartirishda sahifani yangilash
         document.getElementById('limitSelect').addEventListener('change', function () {
             let selectedLimit = this.value;
@@ -260,10 +268,11 @@
             url.searchParams.set('page', 1); // 1-sahifaga qaytarish
             window.location.href = url.toString();
         });
+
+        // Filial nomini tekshirish
         document.addEventListener("DOMContentLoaded", function () {
             const branchInput = document.getElementById("branchName");
             const existingBranches = [{% for branch in branches %}"{{ branch.name|escapejs }}",{% endfor %}];
-
             branchInput.addEventListener("input", function () {
                 if (existingBranches.includes(branchInput.value.trim())) {
                     branchInput.classList.add("is-invalid");
@@ -273,7 +282,4 @@
             });
         });
     </script>
-
-
-
 {% endblock %}

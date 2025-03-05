@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden
 from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator
 from django.db.models import Q
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
 from .models import Dissertatsiya, Monografiya, Risola, Darslik, Qollanma, Loyiha, Jurnal, Maqola, Other, \
     Xorijiy_Tajriba, Branch
@@ -13,6 +12,8 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse
+from django.core.paginator import Paginator
+from django.core.cache import cache
 
 
 def role_required(*roles):
@@ -150,54 +151,58 @@ def global_search(request):
     return render(request, "global_search.html", context)
 
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
-
-class U2DissertatsiyaListView(LoginRequiredMixin, ListView):
-    model = Dissertatsiya
-    template_name = 'kategoriya/users/dissertatsiyalar/u2_dissertatsiyalar.html'
-    context_object_name = 'dissertatsiyalar'
-    paginate_by = 8  # Sahifalash soni
+class GenericListView(LoginRequiredMixin, ListView):
+    paginate_by = 8
+    search_fields = ['title', 'author', 'institution_name']
+    order_by = '-created_at'  # Standart tartiblash
 
     def get_queryset(self):
         user = self.request.user
         queryset = super().get_queryset()
 
-        search_query = self.request.GET.get('search', '').strip()
-
+        # Rol bo‘yicha filtr
         if user.role == 'user2':
             queryset = queryset.exclude(degree='LEVEL1')
         elif user.role == 'user3':
             queryset = queryset.filter(degree='LEVEL3')
 
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
+        # Qidiruv filtri
+        search_query = self.request.GET.get('search', '').strip()
+        if search_query and self.search_fields:
+            q_objects = Q()
+            for field in self.search_fields:
+                q_objects |= Q(**{f"{field}__icontains": search_query})
+            queryset = queryset.filter(q_objects)
 
-        return queryset
+        return queryset.order_by(self.order_by)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Dissertatsiyalar Roʻyxati'
+        context['title'] = f"{self.model._meta.verbose_name_plural.title()} Ro‘yxati"
         context['search_query'] = self.request.GET.get('search', '')
-
-        # Qo‘lda sahifalashni tekshirish
-        dissertatsiyalar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(dissertatsiyalar, self.paginate_by)
-
-        try:
-            dissertatsiyalar = paginator.page(page)
-        except PageNotAnInteger:
-            dissertatsiyalar = paginator.page(1)
-        except EmptyPage:
-            dissertatsiyalar = paginator.page(paginator.num_pages)
-
-        context['dissertatsiyalar'] = dissertatsiyalar
+        context['form'] = self.form_class(user=self.request.user)  # Forma qo‘shish
         return context
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.user = request.user
+            instance.save()
+            messages.success(request, f"{self.model._meta.model_name.capitalize()} muvaffaqiyatli qo'shildi!")
+            return redirect(request.path_info)
+        else:
+            messages.error(request, "Ma'lumotlarni qo'shishda xatolik yuz berdi.")
+            context = self.get_context_data()
+            context['form'] = form
+            return self.render_to_response(context)
+
+
+class U2DissertatsiyaListView(GenericListView):
+    model = Dissertatsiya
+    template_name = 'kategoriya/users/dissertatsiyalar/u2_dissertatsiyalar.html'
+    context_object_name = 'dissertatsiyalar'
+    form_class = DissertatsiyaForm
 
 
 class U2DissertatsiyaDetailView(LoginRequiredMixin, DetailView):
@@ -222,51 +227,11 @@ class U2DissertatsiyaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2MonografiyaListView(LoginRequiredMixin, ListView):
+class U2MonografiyaListView(GenericListView):
     model = Monografiya
     template_name = 'kategoriya/users/monografiyalar/u2_monografiyalar.html'
     context_object_name = 'monografiyalar'
-    paginate_by = 8
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Monografiyalar Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda tekshirish
-        monografiyalar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(monografiyalar, self.paginate_by)
-
-        try:
-            monografiyalar = paginator.page(page)
-        except PageNotAnInteger:
-            monografiyalar = paginator.page(1)
-        except EmptyPage:
-            monografiyalar = paginator.page(paginator.num_pages)
-
-        context['monografiyalar'] = monografiyalar
-        return context
+    form_class = MonografiyaForm
 
 
 class U2MonografiyaDetailView(LoginRequiredMixin, DetailView):
@@ -291,51 +256,11 @@ class U2MonografiyaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2RisolaListView(LoginRequiredMixin, ListView):
+class U2RisolaListView(GenericListView):
     model = Risola
     template_name = 'kategoriya/users/Kitob va Risola/u2_risolalar.html'
     context_object_name = 'risolalar'
-    paginate_by = 8
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Risolalar Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda tekshirish
-        risolalar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(risolalar, self.paginate_by)
-
-        try:
-            risolalar = paginator.page(page)
-        except PageNotAnInteger:
-            risolalar = paginator.page(1)
-        except EmptyPage:
-            risolalar = paginator.page(paginator.num_pages)
-
-        context['risolalar'] = risolalar
-        return context
+    form_class = RisolaForm
 
 
 class U2RisolaDetailView(LoginRequiredMixin, DetailView):
@@ -360,51 +285,11 @@ class U2RisolaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2DarslikListView(LoginRequiredMixin, ListView):
+class U2DarslikListView(GenericListView):
     model = Darslik
     template_name = 'kategoriya/users/Darsliklar/u2_darsliklar.html'
     context_object_name = 'darsliklar'
-    paginate_by = 8
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Darsliklar Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda qo‘shish
-        darsliklar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(darsliklar, self.paginate_by)
-
-        try:
-            darsliklar = paginator.page(page)
-        except PageNotAnInteger:
-            darsliklar = paginator.page(1)
-        except EmptyPage:
-            darsliklar = paginator.page(paginator.num_pages)
-
-        context['darsliklar'] = darsliklar
-        return context
+    form_class = DarslikForm
 
 
 class U2DarslikDetailView(LoginRequiredMixin, DetailView):
@@ -429,51 +314,11 @@ class U2DarslikDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2QollanmaListView(LoginRequiredMixin, ListView):
-    model = Qollanma  # Model o'zgartirildi
-    template_name = 'kategoriya/users/Qollanmalar/u2_qollanmalar.html'  # Template yo‘li moslashtirildi
+class U2QollanmaListView(GenericListView):
+    model = Qollanma
+    template_name = 'kategoriya/users/Qollanmalar/u2_qollanmalar.html'
     context_object_name = 'qollanmalar'
-    paginate_by = 8
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Qo‘llanmalar Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda qo‘shish
-        qollanmalar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(qollanmalar, self.paginate_by)
-
-        try:
-            qollanmalar = paginator.page(page)
-        except PageNotAnInteger:
-            qollanmalar = paginator.page(1)
-        except EmptyPage:
-            qollanmalar = paginator.page(paginator.num_pages)
-
-        context['qollanmalar'] = qollanmalar
-        return context
+    form_class = QollanmaForm
 
 
 class U2QollanmaDetailView(LoginRequiredMixin, DetailView):
@@ -498,51 +343,11 @@ class U2QollanmaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2LoyihaListView(LoginRequiredMixin, ListView):
-    model = Loyiha  # Qollanma o‘rniga Loyiha modeli
-    template_name = 'kategoriya/users/Loyihalar/u2_loyihalar.html'  # Template yo‘li moslashtirildi
+class U2LoyihaListView(GenericListView):
+    model = Loyiha
+    template_name = 'kategoriya/users/Loyihalar/u2_loyihalar.html'
     context_object_name = 'loyihalar'
-    paginate_by = 8  # Sahifalash uchun
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Loyihalar Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda qo‘shish
-        loyihalar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(loyihalar, self.paginate_by)
-
-        try:
-            loyihalar = paginator.page(page)
-        except PageNotAnInteger:
-            loyihalar = paginator.page(1)
-        except EmptyPage:
-            loyihalar = paginator.page(paginator.num_pages)
-
-        context['loyihalar'] = loyihalar
-        return context
+    form_class = LoyihaForm
 
 
 class U2LoyihaDetailView(LoginRequiredMixin, DetailView):
@@ -567,51 +372,11 @@ class U2LoyihaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2JurnalListView(LoginRequiredMixin, ListView):
-    model = Jurnal  # Loyiha o‘rniga Jurnal modeli
-    template_name = 'kategoriya/users/Jurnallar/u2_jurnallar.html'  # Template yo‘li moslashtirildi
+class U2JurnalListView(GenericListView):
+    model = Jurnal
+    template_name = 'kategoriya/users/Jurnallar/u2_jurnallar.html'
     context_object_name = 'jurnallar'
-    paginate_by = 8
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Jurnallar Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda qo‘shish
-        jurnallar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(jurnallar, self.paginate_by)
-
-        try:
-            jurnallar = paginator.page(page)
-        except PageNotAnInteger:
-            jurnallar = paginator.page(1)
-        except EmptyPage:
-            jurnallar = paginator.page(paginator.num_pages)
-
-        context['jurnallar'] = jurnallar
-        return context
+    form_class = JurnalForm
 
 
 class U2JurnalDetailView(LoginRequiredMixin, DetailView):
@@ -636,51 +401,11 @@ class U2JurnalDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2MaqolaListView(LoginRequiredMixin, ListView):
-    model = Maqola  # Jurnal o‘rniga Maqola modeli
-    template_name = 'kategoriya/users/Maqolalar/u2_maqolalar.html'  # Template yo‘li moslashtirildi
+class U2MaqolaListView(GenericListView):
+    model = Maqola
+    template_name = 'kategoriya/users/Maqolalar/u2_maqolalar.html'
     context_object_name = 'maqolalar'
-    paginate_by = 8
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Maqolalar Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda qo‘shish
-        maqolalar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(maqolalar, self.paginate_by)
-
-        try:
-            maqolalar = paginator.page(page)
-        except PageNotAnInteger:
-            maqolalar = paginator.page(1)
-        except EmptyPage:
-            maqolalar = paginator.page(paginator.num_pages)
-
-        context['maqolalar'] = maqolalar
-        return context
+    form_class = MaqolaForm
 
 
 class U2MaqolaDetailView(LoginRequiredMixin, DetailView):
@@ -705,51 +430,13 @@ class U2MaqolaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2TajribaListView(LoginRequiredMixin, ListView):
-    model = Xorijiy_Tajriba  # Maqola o‘rniga Tajriba modeli
-    template_name = 'kategoriya/users/Xorijiy_Tajribalar/u2_tajribalar.html'  # Template yo‘li moslashtirildi
+class U2TajribaListView(GenericListView):
+    model = Xorijiy_Tajriba
+    template_name = 'kategoriya/users/Xorijiy_Tajribalar/u2_tajribalar.html'
     context_object_name = 'tajribalar'
-    paginate_by = 8
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Tajribalar Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda qo‘shish
-        tajribalar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(tajribalar, self.paginate_by)
-
-        try:
-            tajribalar = paginator.page(page)
-        except PageNotAnInteger:
-            tajribalar = paginator.page(1)
-        except EmptyPage:
-            tajribalar = paginator.page(paginator.num_pages)
-
-        context['tajribalar'] = tajribalar
-        return context
+    form_class = XorijiyTajribaForm
+    search_fields = ['title', 'author', 'Military_organization']  # Maxsus qidiruv maydonlari
+    order_by = '-Military_organization'  # Maxsus tartiblash
 
 
 class U2TajribaDetailView(LoginRequiredMixin, DetailView):
@@ -774,51 +461,11 @@ class U2TajribaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class U2OtherListView(LoginRequiredMixin, ListView):
-    model = Other  # Other modeli
-    template_name = 'kategoriya/users/Boshqalar/u2_otherlar.html'  # Template yo‘li moslashtirildi
-    context_object_name = 'otherlar'  # TO'G'RILANDI
-    paginate_by = 8
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super().get_queryset()
-
-        search_query = self.request.GET.get('search', '').strip()
-
-        if user.role == 'user2':
-            queryset = queryset.exclude(degree='LEVEL1')
-        elif user.role == 'user3':
-            queryset = queryset.filter(degree='LEVEL3')
-
-        if search_query:
-            queryset = queryset.filter(
-                Q(title__icontains=search_query) |
-                Q(author__icontains=search_query) |
-                Q(institution_name__icontains=search_query)
-            )
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Other Roʻyxati'
-        context['search_query'] = self.request.GET.get('search', '')
-
-        # Sahifalashni qo‘lda qo‘shish
-        otherlar = self.get_queryset()
-        page = self.request.GET.get('page')
-        paginator = Paginator(otherlar, self.paginate_by)
-
-        try:
-            otherlar = paginator.page(page)
-        except PageNotAnInteger:
-            otherlar = paginator.page(1)
-        except EmptyPage:
-            otherlar = paginator.page(paginator.num_pages)
-
-        context['otherlar'] = otherlar  # TO'G'RILANDI
-        return context
+class U2OtherListView(GenericListView):
+    model = Other
+    template_name = 'kategoriya/users/Boshqalar/u2_otherlar.html'
+    context_object_name = 'otherlar'
+    form_class = OtherForm
 
 
 class U2OtherDetailView(LoginRequiredMixin, DetailView):
@@ -844,25 +491,23 @@ class U2OtherDetailView(LoginRequiredMixin, DetailView):
 
 
 # Pagination va qidiruv uchun umumiy funksiya
-def paginate_and_filter(request, queryset, limit_default=10, search_fields=None):
+def paginate_and_filter(request, queryset, limit_default=10, search_fields=None, order_by='-created_at'):
     limit = request.GET.get("limit", limit_default)
     page = request.GET.get("page", 1)
     search = request.GET.get("search", "").strip()
 
-    try:
-        limit = int(limit)
-        if limit <= 0:
-            limit = limit_default
-    except ValueError:
-        limit = limit_default
+    # Limitni tekshirish
+    limit = min(max(int(limit), 1), 50) if str(limit).isdigit() else limit_default
 
+    # Qidiruv filtri
     if search and search_fields:
         q_objects = Q()
         for field in search_fields:
             q_objects |= Q(**{f"{field}__icontains": search})
         queryset = queryset.filter(q_objects)
 
-    queryset = queryset.order_by("-created_at")
+    # Tartiblash
+    queryset = queryset.order_by(order_by)
     paginator = Paginator(queryset, limit)
     paginated_items = paginator.get_page(page)
 
@@ -916,29 +561,35 @@ def handle_delete(request, model_class, instance_id, redirect_name):
 
 
 # Umumiy list va detail funksiyasi
+@login_required
 def resource_list(request, model_class, form_class, template, limit_default=10, search_fields=None, user=None,
-                  moderator_filter=False):
+                  moderator_filter=False, order_by='-created_at'):
+    # Moderator filtri
     queryset = model_class.objects.all()
     if moderator_filter and request.user.role == 'moderator' and request.user.branch:
         queryset = queryset.filter(branch=request.user.branch)
 
-    pagination_data = paginate_and_filter(request, queryset, limit_default, search_fields)
+    # Pagination va filtr
+    pagination_data = paginate_and_filter(request, queryset, limit_default, search_fields, order_by=order_by)
     form = form_class(user=user) if user else form_class()
 
-    if request.method == "POST" and user:
-        form = form_class(request.POST, request.FILES, user=user)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.user = request.user
-            instance.save()
-            request.session['success'] = f"{model_class._meta.model_name.capitalize()} muvaffaqiyatli qo'shildi!"
-            return redirect(request.path_info)
+    # Filiallar keshdan olish
+    if moderator_filter and request.user.role == 'moderator' and request.user.branch:
+        cache_key = f'branch_{request.user.branch.id}'
+        branches = cache.get(cache_key)
+        if not branches:
+            branches = Branch.objects.filter(id=request.user.branch.id)
+            cache.set(cache_key, branches, 60 * 60)  # 1 soat kesh
+    else:
+        cache_key = 'all_branches'
+        branches = cache.get(cache_key)
+        if not branches:
+            branches = Branch.objects.all()
+            cache.set(cache_key, branches, 60 * 60)  # 1 soat kesh
 
     context = {
-        model_class._meta.model_name + "lar": pagination_data["items"],
-        "branches": Branch.objects.filter(
-            id=request.user.branch.id) if moderator_filter and request.user.role == 'moderator' and request.user.branch else Branch.objects.all(),
-        "success_message": request.session.pop('success', None),
+        f"{model_class._meta.model_name}lar": pagination_data["items"],
+        "branches": branches,
         "form": form,
         "total_pages": pagination_data["total_pages"],
         "search_query": pagination_data["search_query"],
@@ -968,7 +619,8 @@ def m_category_list(request):
 
 
 # Dissertatsiya
-@csrf_exempt
+@login_required
+@csrf_protect
 def dissertatsiya_list(request):
     return resource_list(
         request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/admin/dissertatsiya.html',
@@ -977,7 +629,7 @@ def dissertatsiya_list(request):
 
 
 @role_required('moderator')
-@csrf_exempt
+@csrf_protect
 def m_dissertatsiya_list(request):
     if not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -988,7 +640,7 @@ def m_dissertatsiya_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_dissertatsiya_list(request):
     return resource_list(
         request, Dissertatsiya, DissertatsiyaForm, 'kategoriya/users/dissertatsiyalar/u_dissertatsiyalar.html',
@@ -1003,9 +655,10 @@ def u1_dissertatsiya_detail(request, dissertatsiya_id):
     )
 
 
-@csrf_exempt
+@login_required
+@csrf_protect
 def dissertatsiya_create(request):
-    return handle_create(request, DissertatsiyaForm, 'dissertatsiya_list', 'Dissertatsiya')
+    return handle_create(request, DissertatsiyaForm, 'dissertatsiya_list', 'Dissertatsiya', user=request.user)
 
 
 @csrf_exempt
@@ -1013,9 +666,11 @@ def m_dissertatsiya_create(request):
     return handle_create(request, DissertatsiyaForm, 'm_dissertatsiya_list', 'Dissertatsiya', user=request.user)
 
 
-@csrf_exempt
+@login_required
+@csrf_protect
 def dissertatsiya_edit(request, dissertatsiya_id):
-    return handle_edit(request, Dissertatsiya, dissertatsiya_id, DissertatsiyaForm, 'dissertatsiya_list')
+    return handle_edit(request, Dissertatsiya, dissertatsiya_id, DissertatsiyaForm, 'dissertatsiya_list',
+                       user=request.user)
 
 
 @csrf_exempt
@@ -1024,6 +679,9 @@ def m_dissertatsiya_edit(request, dissertatsiya_id):
                        user=request.user)
 
 
+@login_required
+@require_POST
+@csrf_protect
 def dissertatsiya_delete(request, dissertatsiya_id):
     return handle_delete(request, Dissertatsiya, dissertatsiya_id, 'dissertatsiya_list')
 
@@ -1032,8 +690,9 @@ def m_dissertatsiya_delete(request, dissertatsiya_id):
     return handle_delete(request, Dissertatsiya, dissertatsiya_id, 'm_dissertatsiya_list')
 
 
-# Monografiya
-@csrf_exempt
+# Monografiya view’lari
+@login_required
+@csrf_protect
 def monografiya_list(request):
     return resource_list(
         request, Monografiya, MonografiyaForm, 'kategoriya/admin/monografiya.html',
@@ -1042,7 +701,7 @@ def monografiya_list(request):
 
 
 @role_required('moderator')
-@csrf_exempt
+@csrf_protect
 def m_monografiya_list(request):
     if not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -1053,7 +712,7 @@ def m_monografiya_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_monografiya_list(request):
     return resource_list(
         request, Monografiya, MonografiyaForm, 'kategoriya/users/monografiyalar/u_monografiyalar.html',
@@ -1068,9 +727,10 @@ def u1_monografiya_detail(request, monografiya_id):
     )
 
 
-@csrf_exempt
+@login_required
+@csrf_protect
 def monografiya_create(request):
-    return handle_create(request, MonografiyaForm, 'monografiya_list', 'Monografiya')
+    return handle_create(request, MonografiyaForm, 'monografiya_list', 'Monografiya', user=request.user)
 
 
 @csrf_exempt
@@ -1078,9 +738,10 @@ def m_monografiya_create(request):
     return handle_create(request, MonografiyaForm, 'm_monografiya_list', 'Monografiya', user=request.user)
 
 
-@csrf_exempt
+@login_required
+@csrf_protect
 def monografiya_edit(request, monografiya_id):
-    return handle_edit(request, Monografiya, monografiya_id, MonografiyaForm, 'monografiya_list')
+    return handle_edit(request, Monografiya, monografiya_id, MonografiyaForm, 'monografiya_list', user=request.user)
 
 
 @csrf_exempt
@@ -1088,6 +749,9 @@ def m_monografiya_edit(request, monografiya_id):
     return handle_edit(request, Monografiya, monografiya_id, MonografiyaForm, 'm_monografiya_list', user=request.user)
 
 
+@login_required
+@require_POST
+@csrf_protect
 def monografiya_delete(request, monografiya_id):
     return handle_delete(request, Monografiya, monografiya_id, 'monografiya_list')
 
@@ -1096,8 +760,9 @@ def m_monografiya_delete(request, monografiya_id):
     return handle_delete(request, Monografiya, monografiya_id, 'm_monografiya_list')
 
 
-# Risola
-@csrf_exempt
+# Risola view’lari
+@login_required
+@csrf_protect
 def risola_list(request):
     return resource_list(
         request, Risola, RisolaForm, 'kategoriya/admin/Kitob_Risola.html',
@@ -1106,7 +771,7 @@ def risola_list(request):
 
 
 @role_required('moderator')
-@csrf_exempt
+@csrf_protect
 def m_risola_list(request):
     if not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -1117,7 +782,7 @@ def m_risola_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_risola_list(request):
     return resource_list(
         request, Risola, RisolaForm, 'kategoriya/users/Kitob va Risola/u1_risolalar.html',
@@ -1132,9 +797,10 @@ def u1_risola_detail(request, risola_id):
     )
 
 
-@csrf_exempt
+@login_required
+@csrf_protect
 def risola_create(request):
-    return handle_create(request, RisolaForm, 'risola_list', 'risola')
+    return handle_create(request, RisolaForm, 'risola_list', 'Risola', user=request.user)
 
 
 @csrf_exempt
@@ -1142,9 +808,10 @@ def m_risola_create(request):
     return handle_create(request, RisolaForm, 'm_risola_list', 'risola', user=request.user)
 
 
-@csrf_exempt
+@login_required
+@csrf_protect
 def risola_edit(request, risola_id):
-    return handle_edit(request, Risola, risola_id, RisolaForm, 'risola_list')
+    return handle_edit(request, Risola, risola_id, RisolaForm, 'risola_list', user=request.user)
 
 
 @csrf_exempt
@@ -1152,6 +819,9 @@ def m_risola_edit(request, risola_id):
     return handle_edit(request, Risola, risola_id, RisolaForm, 'm_risola_list', user=request.user)
 
 
+@login_required
+@require_POST
+@csrf_protect
 def risola_delete(request, risola_id):
     return handle_delete(request, Risola, risola_id, 'risola_list')
 
@@ -1161,7 +831,8 @@ def m_risola_delete(request, risola_id):
 
 
 # Darslik
-@csrf_exempt
+@login_required
+@csrf_protect
 def darslik_list(request):
     return resource_list(
         request, Darslik, DarslikForm, 'kategoriya/admin/Darslik.html',
@@ -1170,7 +841,7 @@ def darslik_list(request):
 
 
 @role_required('moderator')
-@csrf_exempt
+@csrf_protect
 def m_darslik_list(request):
     if not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -1181,7 +852,7 @@ def m_darslik_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_darslik_list(request):
     return resource_list(
         request, Darslik, DarslikForm, 'kategoriya/users/Darsliklar/u1_darsliklar.html',
@@ -1196,9 +867,10 @@ def u1_darslik_detail(request, darslik_id):
     )
 
 
-@csrf_exempt
+@login_required
+@csrf_protect
 def darslik_create(request):
-    return handle_create(request, DarslikForm, 'darslik_list', 'darslik')
+    return handle_create(request, DarslikForm, 'darslik_list', 'Darslik', user=request.user)
 
 
 @csrf_exempt
@@ -1206,9 +878,10 @@ def m_darslik_create(request):
     return handle_create(request, DarslikForm, 'm_darslik_list', 'darslik', user=request.user)
 
 
-@csrf_exempt
+@login_required
+@csrf_protect
 def darslik_edit(request, darslik_id):
-    return handle_edit(request, Darslik, darslik_id, DarslikForm, 'darslik_list')
+    return handle_edit(request, Darslik, darslik_id, DarslikForm, 'darslik_list', user=request.user)
 
 
 @csrf_exempt
@@ -1216,6 +889,9 @@ def m_darslik_edit(request, darslik_id):
     return handle_edit(request, Darslik, darslik_id, DarslikForm, 'm_darslik_list', user=request.user)
 
 
+@login_required
+@require_POST
+@csrf_protect
 def darslik_delete(request, darslik_id):
     return handle_delete(request, Darslik, darslik_id, 'darslik_list')
 
@@ -1225,7 +901,8 @@ def m_darslik_delete(request, darslik_id):
 
 
 # Qollanma
-@csrf_exempt
+# Qollanma view’lari
+@csrf_protect
 def qollanma_list(request):
     return resource_list(
         request, Qollanma, QollanmaForm, 'kategoriya/admin/Qollanma.html',
@@ -1234,7 +911,7 @@ def qollanma_list(request):
 
 
 @role_required('moderator', 'administrator')
-@csrf_exempt
+@csrf_protect
 def m_qollanma_list(request):
     if request.user.role == 'moderator' and not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -1245,7 +922,7 @@ def m_qollanma_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_qollanma_list(request):
     return resource_list(
         request, Qollanma, QollanmaForm, 'kategoriya/users/Qollanmalar/u1_qollanmalar.html',
@@ -1288,8 +965,8 @@ def m_qollanma_delete(request, qollanma_id):
     return handle_delete(request, Qollanma, qollanma_id, 'm_qollanma_list')
 
 
-# Loyiha
-@csrf_exempt
+# Loyiha view’lari
+@csrf_protect
 def loyiha_list(request):
     return resource_list(
         request, Loyiha, LoyihaForm, 'kategoriya/admin/Ilmiy Loyiha.html',
@@ -1298,7 +975,7 @@ def loyiha_list(request):
 
 
 @role_required('moderator', 'administrator')
-@csrf_exempt
+@csrf_protect
 def m_loyiha_list(request):
     if request.user.role == 'moderator' and not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -1309,11 +986,11 @@ def m_loyiha_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_loyiha_list(request):
     return resource_list(
         request, Loyiha, LoyihaForm, 'kategoriya/users/Loyihalar/u1_loyihalar.html',
-        limit_default=8, search_fields=['title', 'author', 'institution_name'], user=request.user, moderator_filter=True
+        limit_default=8, search_fields=['title', 'description'], user=request.user, moderator_filter=True
     )
 
 
@@ -1352,8 +1029,8 @@ def m_loyiha_delete(request, loyiha_id):
     return handle_delete(request, Loyiha, loyiha_id, 'm_loyiha_list')
 
 
-# Jurnal
-@csrf_exempt
+# Jurnal view’lari
+@csrf_protect
 def jurnal_list(request):
     return resource_list(
         request, Jurnal, JurnalForm, 'kategoriya/admin/ilmiy Jurnallar.html',
@@ -1362,7 +1039,7 @@ def jurnal_list(request):
 
 
 @role_required('moderator', 'administrator')
-@csrf_exempt
+@csrf_protect
 def m_jurnal_list(request):
     if request.user.role == 'moderator' and not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -1373,7 +1050,7 @@ def m_jurnal_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_jurnal_list(request):
     return resource_list(
         request, Jurnal, JurnalForm, 'kategoriya/users/Jurnallar/u1_jurnallar.html',
@@ -1417,7 +1094,8 @@ def m_jurnal_delete(request, jurnal_id):
 
 
 # Maqola
-@csrf_exempt
+# Maqola view’lari
+@csrf_protect
 def maqola_list(request):
     return resource_list(
         request, Maqola, MaqolaForm, 'kategoriya/admin/Ilmiy Maqola.html',
@@ -1426,7 +1104,7 @@ def maqola_list(request):
 
 
 @role_required('moderator', 'administrator')
-@csrf_exempt
+@csrf_protect
 def m_maqola_list(request):
     if request.user.role == 'moderator' and not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -1437,7 +1115,7 @@ def m_maqola_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_maqola_list(request):
     return resource_list(
         request, Maqola, MaqolaForm, 'kategoriya/users/Maqolalar/u1_maqolalar.html',
@@ -1480,8 +1158,8 @@ def m_maqola_delete(request, maqola_id):
     return handle_delete(request, Maqola, maqola_id, 'm_maqola_list')
 
 
-# Other
-@csrf_exempt
+# Other view’lari
+@csrf_protect
 def other_list(request):
     return resource_list(
         request, Other, OtherForm, 'kategoriya/admin/Boshqalar.html',
@@ -1490,7 +1168,7 @@ def other_list(request):
 
 
 @role_required('moderator', 'administrator')
-@csrf_exempt
+@csrf_protect
 def m_other_list(request):
     if request.user.role == 'moderator' and not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
@@ -1501,7 +1179,7 @@ def m_other_list(request):
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_other_list(request):
     return resource_list(
         request, Other, OtherForm, 'kategoriya/users/Boshqalar/u1_otherlar.html',
@@ -1545,50 +1223,48 @@ def m_other_delete(request, other_id):
 
 
 # Xorijiy Tajriba
-@csrf_exempt
+@csrf_protect
 def tajriba_list(request):
-    pagination_data = paginate_and_filter(
-        request, Xorijiy_Tajriba.objects.all().order_by('-Military_organization'),
-        search_fields=['title', 'author', 'Military_organization']
+    return resource_list(
+        request,
+        model_class=Xorijiy_Tajriba,
+        form_class=XorijiyTajribaForm,
+        template='kategoriya/admin/Xorijiy tajribalar.html',
+        search_fields=['title', 'author', 'Military_organization'],
+        order_by='-Military_organization'
     )
-    return render(request, 'kategoriya/admin/Xorijiy tajribalar.html', {
-        'tajribalar': pagination_data["items"],
-        'branches': Branch.objects.all(),
-        'success_message': request.session.pop('success', None),
-        'form': XorijiyTajribaForm(),
-        'total_pages': pagination_data["total_pages"],
-        'search_query': pagination_data["search_query"],
-    })
 
 
 @role_required('moderator', 'administrator')
-@csrf_exempt
+@csrf_protect
 def m_tajriba_list(request):
     if request.user.role == 'moderator' and not request.user.branch:
         return HttpResponseForbidden("Moderator uchun branch belgilanmagan.")
-    queryset = Xorijiy_Tajriba.objects.filter(
-        branch=request.user.branch) if request.user.role == 'moderator' else Xorijiy_Tajriba.objects.all()
-    pagination_data = paginate_and_filter(
-        request, queryset.order_by('-Military_organization'),
-        search_fields=['title', 'author', 'Military_organization']
+    return resource_list(
+        request,
+        model_class=Xorijiy_Tajriba,
+        form_class=XorijiyTajribaForm,
+        template='kategoriya/moderator/m_Xorijiy tajribalar.html',
+        search_fields=['title', 'author', 'Military_organization'],
+        user=request.user,
+        moderator_filter=True,
+        order_by='-Military_organization'
     )
-    return render(request, 'kategoriya/moderator/m_Xorijiy tajribalar.html', {
-        'tajribalar': pagination_data["items"],
-        'branches': Branch.objects.filter(
-            id=request.user.branch.id) if request.user.role == 'moderator' and request.user.branch else Branch.objects.all(),
-        'success_message': request.session.pop('success', None),
-        'form': XorijiyTajribaForm(user=request.user),
-        'total_pages': pagination_data["total_pages"],
-        'search_query': pagination_data["search_query"],
-    })
 
 
 @role_required('moderator', 'administrator', 'user1', 'user2', 'user3')
-@csrf_exempt
+@csrf_protect
 def u1_tajriba_list(request):
     return resource_list(
-        request, Xorijiy_Tajriba, XorijiyTajribaForm, 'kategoriya/users/Xorijiy_Tajribalar/u1_tajribalar.html',
-        limit_default=8, search_fields=['title', 'author', 'institution_name'], user=request.user, moderator_filter=True
+        request,
+        model_class=Xorijiy_Tajriba,
+        form_class=XorijiyTajribaForm,
+        template='kategoriya/users/Xorijiy_Tajribalar/u1_tajribalar.html',
+        limit_default=8,
+        search_fields=['title', 'author', 'Military_organization'],  # `institution_name` o‘rniga to‘g‘ri maydon
+        user=request.user,
+        moderator_filter=True,
+        order_by='-Military_organization'
     )
 
 

@@ -364,6 +364,7 @@
                     <div class="d-flex justify-content-center">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination justify-content-center">
+                                <!-- Oldingi tugma -->
                                 <li class="page-item {% if not loyihalar.has_previous %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if loyihalar.has_previous %}?page={{ loyihalar.previous_page_number }}&limit={{ request.GET.limit }}&search=
@@ -371,12 +372,26 @@
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
-                                {% for num in loyihalar.paginator.page_range %}
-                                    <li class="page-item {% if loyihalar.number == num %}active{% endif %}">
+
+                                <!-- Oldingi 5 ta sahifa -->
+                                {% with start_page=loyihalar.number|add:-5 end_page=loyihalar.number %}
+                                    {% for num in loyihalar.paginator.page_range %}
+                                        {% if num >= start_page and num < end_page and num > 0 %}
+                                            <li class="page-item {% if loyihalar.number == num %}active{% endif %}">
+                                                <a class="page-link text-primary font-weight-bold"
+                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search|urlencode }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    <!-- Joriy sahifa -->
+                                    <li class="page-item active">
                                         <a class="page-link text-primary font-weight-bold"
-                                           href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search|urlencode }}">{{ num }}</a>
+                                           href="?page={{ loyihalar.number }}&limit={{ request.GET.limit }}&search={{ request.GET.search|urlencode }}">{{ loyihalar.number }}</a>
                                     </li>
-                                {% endfor %}
+                                {% endwith %}
+
+                                <!-- Keyingi tugma -->
                                 <li class="page-item {% if not loyihalar.has_next %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if loyihalar.has_next %}?page={{ loyihalar.next_page_number }}&limit={{ request.GET.limit }}&search=
@@ -523,26 +538,26 @@
     <script src="{% static 'user/js/bundle.min.js' %}"></script>
     <!-- JavaScript -->
     <script>
-    document.getElementById('limitSelect').addEventListener('change', function () {
-        let selectedLimit = this.value;
-        let url = new URL(window.location.href);
-        url.searchParams.set('limit', selectedLimit);
-        url.searchParams.set('page', 1);
-        window.location.href = url.toString();
-    });
-
-    document.getElementById("searchInput").addEventListener("keydown", function (event) {
-        if (event.key === "Enter") { // Enter tugmasi bosilganda
-            let searchValue = this.value.trim();
-            if (searchValue.length < 2 && searchValue.length > 0) {
-                return; // 1 belgi bo‘lsa hech narsa qilmaymiz
-            }
+        document.getElementById('limitSelect').addEventListener('change', function () {
+            let selectedLimit = this.value;
             let url = new URL(window.location.href);
-            url.searchParams.set('search', searchValue);
+            url.searchParams.set('limit', selectedLimit);
             url.searchParams.set('page', 1);
             window.location.href = url.toString();
-        }
-    });
-</script>
+        });
+
+        document.getElementById("searchInput").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") { // Enter tugmasi bosilganda
+                let searchValue = this.value.trim();
+                if (searchValue.length < 2 && searchValue.length > 0) {
+                    return; // 1 belgi bo‘lsa hech narsa qilmaymiz
+                }
+                let url = new URL(window.location.href);
+                url.searchParams.set('search', searchValue);
+                url.searchParams.set('page', 1);
+                window.location.href = url.toString();
+            }
+        });
+    </script>
 
 {% endblock %}

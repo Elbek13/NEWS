@@ -362,10 +362,12 @@
                             </table>
                         </div>
                     </div>
+
                     <!-- Sahifalash -->
                     <div class="d-flex justify-content-center">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination justify-content-center">
+                                <!-- Oldingi tugma -->
                                 <li class="page-item {% if not risolalar.has_previous %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if risolalar.has_previous %}?page={{ risolalar.previous_page_number }}&limit={{ request.GET.limit }}&search=
@@ -373,12 +375,20 @@
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
-                                {% for num in risolalar.paginator.page_range %}
-                                    <li class="page-item {% if risolalar.number == num %}active{% endif %}">
-                                        <a class="page-link text-primary font-weight-bold"
-                                           href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search }}">{{ num }}</a>
-                                    </li>
-                                {% endfor %}
+
+                                <!-- Oldingi 5 ta sahifa va joriy sahifa -->
+                                {% with start_page=risolalar.number|add:-5 end_page=risolalar.number %}
+                                    {% for num in risolalar.paginator.page_range %}
+                                        {% if num >= start_page and num <= end_page and num > 0 %}
+                                            <li class="page-item {% if risolalar.number == num %}active{% endif %}">
+                                                <a class="page-link text-primary font-weight-bold"
+                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ request.GET.search }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+
+                                <!-- Keyingi tugma -->
                                 <li class="page-item {% if not risolalar.has_next %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if risolalar.has_next %}?page={{ risolalar.next_page_number }}&limit={{ request.GET.limit }}&search=
