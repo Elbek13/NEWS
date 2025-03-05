@@ -20,7 +20,7 @@ class BaseModelForm(forms.ModelForm):
             'publication_type': forms.TextInput(attrs={'class': 'form-control'}),
             'publication_year': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'content_type': forms.Select(attrs={'class': 'form-select'}),
+            'content_type': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'degree': forms.Select(attrs={'class': 'form-select'}),
             'issn_isbn': forms.TextInput(attrs={'class': 'form-control'}),
             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),

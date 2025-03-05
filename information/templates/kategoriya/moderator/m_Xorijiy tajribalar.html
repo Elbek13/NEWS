@@ -312,6 +312,7 @@
                     <div class="d-flex justify-content-center">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination justify-content-center">
+                                <!-- Oldingi tugma -->
                                 <li class="page-item {% if not tajribalar.has_previous %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if tajribalar.has_previous %}?page={{ tajribalar.previous_page_number }}&limit={{ request.GET.limit }}&search=
@@ -319,12 +320,20 @@
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
-                                {% for num in tajribalar.paginator.page_range %}
-                                    <li class="page-item {% if tajribalar.number == num %}active{% endif %}">
-                                        <a class="page-link text-primary font-weight-bold"
-                                           href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query|urlencode }}">{{ num }}</a>
-                                    </li>
-                                {% endfor %}
+
+                                <!-- Oldingi 5 ta sahifa va joriy sahifa -->
+                                {% with start_page=tajribalar.number|add:-5 end_page=tajribalar.number %}
+                                    {% for num in tajribalar.paginator.page_range %}
+                                        {% if num >= start_page and num <= end_page and num > 0 %}
+                                            <li class="page-item {% if tajribalar.number == num %}active{% endif %}">
+                                                <a class="page-link text-primary font-weight-bold"
+                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query|urlencode }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+
+                                <!-- Keyingi tugma -->
                                 <li class="page-item {% if not tajribalar.has_next %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if tajribalar.has_next %}?page={{ tajribalar.next_page_number }}&limit={{ request.GET.limit }}&search=

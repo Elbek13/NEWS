@@ -375,6 +375,7 @@
                     <div class="d-flex justify-content-center">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination justify-content-center">
+                                <!-- Oldingi tugma -->
                                 <li class="page-item {% if not monografiyalar.has_previous %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if monografiyalar.has_previous %}?page={{ monografiyalar.previous_page_number }}&limit=
@@ -382,12 +383,20 @@
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
-                                {% for num in monografiyalar.paginator.page_range %}
-                                    <li class="page-item {% if monografiyalar.number == num %}active{% endif %}">
-                                        <a class="page-link text-primary font-weight-bold"
-                                           href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
-                                    </li>
-                                {% endfor %}
+
+                                <!-- Oldingi 5 ta sahifa va joriy sahifa -->
+                                {% with start_page=monografiyalar.number|add:-5 end_page=monografiyalar.number %}
+                                    {% for num in monografiyalar.paginator.page_range %}
+                                        {% if num >= start_page and num <= end_page and num > 0 %}
+                                            <li class="page-item {% if monografiyalar.number == num %}active{% endif %}">
+                                                <a class="page-link text-primary font-weight-bold"
+                                                   href="?page={{ num }}&limit={{ request.GET.limit }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+
+                                <!-- Keyingi tugma -->
                                 <li class="page-item {% if not monografiyalar.has_next %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if monografiyalar.has_next %}?page={{ monografiyalar.next_page_number }}&limit=

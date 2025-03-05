@@ -68,10 +68,11 @@
         {% if darsliklar.has_other_pages %}
             <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center mt-4">
+                    <!-- Orqaga tugmasi -->
                     {% if darsliklar.has_previous %}
                         <li class="page-item">
                             <a class="page-link" href="?page=
-                                    {{ darslik.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                                    {{ darsliklar.previous_page_number }}{% if request.GET.limit %}&limit={{ request.GET.limit }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
                                aria-label="Previous">
                                 <span aria-hidden="true">«</span>
                             </a>
@@ -82,20 +83,73 @@
                         </li>
                     {% endif %}
 
-                    {% for num in darsliklar.paginator.page_range %}
-                        {% if darsliklar.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    <!-- Sahifa raqamlari (joriy sahifadan oldin va keyin 5 ta) -->
+                    {% with current=darsliklar.number total=darsliklar.paginator.num_pages %}
+                        {% if total <= 11 %}
+                            {% for num in darsliklar.paginator.page_range %}
+                                {% if darsliklar.number == num %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=
+                                                {{ num }}{% if request.GET.limit %}&limit={{ request.GET.limit }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
                         {% else %}
-                            <li class="page-item"><a class="page-link" href="?page=
-                                    {{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
-                            </li>
+                            {% with start=current|add:"-5" end=current|add:"5" %}
+                                {% if start < 1 %}
+                                    {% for num in darsliklar.paginator.page_range %}
+                                        {% if num <= 11 %}
+                                            {% if darsliklar.number == num %}
+                                                <li class="page-item active"><span class="page-link">{{ num }}</span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page=
+                                                            {{ num }}{% if request.GET.limit %}&limit={{ request.GET.limit }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% elif end > total %}
+                                    {% for num in darsliklar.paginator.page_range %}
+                                        {% if num > total|add:"-11" %}
+                                            {% if darsliklar.number == num %}
+                                                <li class="page-item active"><span class="page-link">{{ num }}</span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page=
+                                                            {{ num }}{% if request.GET.limit %}&limit={{ request.GET.limit }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% for num in darsliklar.paginator.page_range %}
+                                        {% if num >= start and num <= end %}
+                                            {% if darsliklar.number == num %}
+                                                <li class="page-item active"><span class="page-link">{{ num }}</span>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page=
+                                                            {{ num }}{% if request.GET.limit %}&limit={{ request.GET.limit }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
                         {% endif %}
-                    {% endfor %}
+                    {% endwith %}
 
+                    <!-- Oldinga tugmasi -->
                     {% if darsliklar.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="?page=
-                                    {{ darsliklar.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                                    {{ darsliklar.next_page_number }}{% if request.GET.limit %}&limit={{ request.GET.limit }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
                                aria-label="Next">
                                 <span aria-hidden="true">»</span>
                             </a>

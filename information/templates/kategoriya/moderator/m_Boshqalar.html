@@ -369,6 +369,7 @@
                     <div class="d-flex justify-content-center">
                         <nav aria-label="Page navigation example">
                             <ul class="pagination justify-content-center">
+                                <!-- Oldingi tugma -->
                                 <li class="page-item {% if not otherlar.has_previous %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if otherlar.has_previous %}?page={{ otherlar.previous_page_number }}&limit={{ request.GET.limit }}&search=
@@ -376,12 +377,26 @@
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
-                                {% for num in otherlar.paginator.page_range %}
-                                    <li class="page-item {% if otherlar.number == num %}active{% endif %}">
-                                        <a class="page-link text-primary font-weight-bold"
-                                           href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query|urlencode }}">{{ num }}</a>
-                                    </li>
-                                {% endfor %}
+
+                                <!-- Oldingi 5 ta sahifa raqamini chiqarish -->
+                                {% with start_page=otherlar.number|add:-5 end_page=otherlar.number|add:-1 %}
+                                    {% for num in otherlar.paginator.page_range %}
+                                        {% if num >= start_page and num <= end_page and num > 0 %}
+                                            <li class="page-item {% if otherlar.number == num %}active{% endif %}">
+                                                <a class="page-link text-primary font-weight-bold"
+                                                   href="?page={{ num }}&limit={{ request.GET.limit }}&search={{ search_query|urlencode }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+
+                                <!-- Joriy sahifa -->
+                                <li class="page-item active">
+                                    <a class="page-link text-primary font-weight-bold"
+                                       href="?page={{ otherlar.number }}&limit={{ request.GET.limit }}&search={{ search_query|urlencode }}">{{ otherlar.number }}</a>
+                                </li>
+
+                                <!-- Keyingi tugma -->
                                 <li class="page-item {% if not otherlar.has_next %}disabled{% endif %}">
                                     <a class="page-link"
                                        href="{% if otherlar.has_next %}?page={{ otherlar.next_page_number }}&limit={{ request.GET.limit }}&search=
