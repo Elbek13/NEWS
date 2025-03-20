@@ -3,7 +3,7 @@ from user.views import admin_list, admin_delete, admin_create, admin_edit, user_
     user1_delete, moderator_list, moderator_create, moderator_edit, moderator_delete, user2_list, \
     user2_create, user2_edit, user2_delete, user3_list, user3_create, user3_delete, user3_edit, m_user_list, \
     m_user1_list, m_user1_create, m_user1_edit, m_user1_delete, m_user2_list, m_user2_create, m_user2_edit, \
-    m_user2_delete, m_user3_edit, m_user3_list, m_user3_create, m_user3_delete, user1, user2, page_403
+    m_user2_delete, m_user3_edit, m_user3_list, m_user3_create, m_user3_delete, user1, user2, page_403,user3
 from django.urls import path
 
 urlpatterns = [
@@ -11,6 +11,7 @@ urlpatterns = [
     path('m_user_list/', m_user_list, name='m_user_list'),
     path('user1/', user1, name='user1'),
     path('user2/', user2, name='user2'),
+    path('user3/', user3, name='user3'),
 
     path('admin_list/', admin_list, name='admin_list'),
     path('admin_list/create/', admin_create, name='admin_create'),

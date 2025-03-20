@@ -1,10 +1,112 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'users3_base.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Search Start -->
+    <div class="container-fluid bg-primary mb-5 wow fadeIn" data-wow-delay="0.1s" style="padding: 35px">
+        <div class="container">
+            <form method="GET" action="{% url 'u3_monografiya_list' %}">
+                <div class="row g-2">
+                    <div class="col-md-10">
+                        <div class="row g-2">
+                            <div class="col-md-10">
+                                <label>
+                                    <input
+                                            type="text"
+                                            name="search"
+                                            class="form-control border-0 py-3"
+                                            placeholder="Qidiruv..."
+                                            value="{{ request.GET.search|default:'' }}"
+                                            style="width: 1020px!important;"
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-dark border-0 w-100 py-3">Qidirish</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Search End -->
+
+    <h2 style="text-align: center!important;">Monografiyalar (User3)</h2>
+
+    <!-- Monografiyalar ro'yxati -->
+    <div class="container">
+        {% if monografiyalar %}
+            <!-- Monografiyalar ro'yxati -->
+            <div class="row my-5">
+                {% for monografiya in monografiyalar %}
+                    <div class="col-lg-3 col-md-6 col-sm-12 wow fadeInUp" data-wow-delay="0.1s">
+                        <a
+                                class="cat-item d-block bg-light text-center rounded p-3"
+                                href="{% url 'u3_monografiya_detail' monografiya.id %}"
+                        >
+                            <div class="rounded p-3">
+                                <div class="icon mb-3">
+                                    <img
+                                            class="img-fluid"
+                                            src="{% static 'user/u_img/icon-apartment.png' %}"
+                                            alt="Icon"
+                                    />
+                                </div>
+                                <h6>Mavzu: {{ monografiya.title }}</h6>
+                                <p>Muallif: {{ monografiya.author }}</p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center;">Hech qanday monografiya topilmadi.</p>
+        {% endif %}
+
+        <!-- Pagination -->
+        {% if monografiyalar.has_other_pages %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-4">
+                    {% if monografiyalar.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=
+                                    {{ monografiyalar.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                               aria-label="Previous">
+                                <span aria-hidden="true">«</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">«</span>
+                        </li>
+                    {% endif %}
+
+                    {% for num in monografiyalar.paginator.page_range %}
+                        {% if monografiyalar.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page=
+                                    {{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if monografiyalar.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=
+                                    {{ monografiyalar.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                               aria-label="Next">
+                                <span aria-hidden="true">»</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">»</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+{% endblock %}

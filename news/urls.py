@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from user.views import user_logout, user_login, register,dashboard,sayt
+from user.views import user_logout, user_login, register,dashboard,user3
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -26,7 +26,7 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
     path('branch/', include('branch.urls')),
     path('user/', include('user.urls')),
-    path('sayt/',sayt,name='sayt'),
+    path('',user3,name='sayt'),
     path('chat/', include('chat.urls')),
     path('information/', include('information.urls')),
     path('login/', user_login, name='login'),

@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden
 from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
@@ -13,6 +12,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 def role_required(*roles):
@@ -150,7 +150,684 @@ def global_search(request):
     return render(request, "global_search.html", context)
 
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+class U3DissertatsiyaListView(LoginRequiredMixin, ListView):
+    model = Dissertatsiya
+    template_name = 'kategoriya/users/dissertatsiyalar/u3_dissertatsiyalar.html'
+    context_object_name = 'dissertatsiyalar'
+    paginate_by = 8  # Sahifalash soni
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali dissertatsiyalarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Dissertatsiyalar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Qo‘lda sahifalashni tekshirish
+        dissertatsiyalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(dissertatsiyalar, self.paginate_by)
+
+        try:
+            dissertatsiyalar = paginator.page(page)
+        except PageNotAnInteger:
+            dissertatsiyalar = paginator.page(1)
+        except EmptyPage:
+            dissertatsiyalar = paginator.page(paginator.num_pages)
+
+        context['dissertatsiyalar'] = dissertatsiyalar
+        return context
+
+
+class U3DissertatsiyaDetailView(LoginRequiredMixin, DetailView):
+    model = Dissertatsiya
+    template_name = 'kategoriya/users/dissertatsiyalar/u3_dissertatsiya_detail.html'
+    context_object_name = 'dissertatsiya'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va dissertatsiya LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu dissertatsiyani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Dissertatsiya: {self.object.title}"
+        return context
+
+
+class U3MonografiyaListView(LoginRequiredMixin, ListView):
+    model = Monografiya
+    template_name = 'kategoriya/users/monografiyalar/u3_monografiyalar.html'
+    context_object_name = 'monografiyalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali monografiyalarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Monografiyalar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda tekshirish
+        monografiyalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(monografiyalar, self.paginate_by)
+
+        try:
+            monografiyalar = paginator.page(page)
+        except PageNotAnInteger:
+            monografiyalar = paginator.page(1)
+        except EmptyPage:
+            monografiyalar = paginator.page(paginator.num_pages)
+
+        context['monografiyalar'] = monografiyalar
+        return context
+
+
+class U3MonografiyaDetailView(LoginRequiredMixin, DetailView):
+    model = Monografiya
+    template_name = 'kategoriya/users/monografiyalar/u3_monografiyalar_detail.html'
+    context_object_name = 'monografiya'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va monografiya LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu monografiyani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Monografiya: {self.object.title}"
+        return context
+
+
+class U3RisolaListView(LoginRequiredMixin, ListView):
+    model = Risola
+    template_name = 'kategoriya/users/Kitob va Risola/u3_risolalar.html'
+    context_object_name = 'risolalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali risolalarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Risolalar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda tekshirish
+        risolalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(risolalar, self.paginate_by)
+
+        try:
+            risolalar = paginator.page(page)
+        except PageNotAnInteger:
+            risolalar = paginator.page(1)
+        except EmptyPage:
+            risolalar = paginator.page(paginator.num_pages)
+
+        context['risolalar'] = risolalar
+        return context
+
+
+class U3RisolaDetailView(LoginRequiredMixin, DetailView):
+    model = Risola
+    template_name = 'kategoriya/users/Kitob va Risola/u3_risolalar_detail.html'
+    context_object_name = 'risola'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va risola LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu risolani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Risola: {self.object.title}"
+        return context
+
+
+class U3DarslikListView(LoginRequiredMixin, ListView):
+    model = Darslik
+    template_name = 'kategoriya/users/Darsliklar/u3_darsliklar.html'
+    context_object_name = 'darsliklar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali darsliklarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Darsliklar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        darsliklar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(darsliklar, self.paginate_by)
+
+        try:
+            darsliklar = paginator.page(page)
+        except PageNotAnInteger:
+            darsliklar = paginator.page(1)
+        except EmptyPage:
+            darsliklar = paginator.page(paginator.num_pages)
+
+        context['darsliklar'] = darsliklar
+        return context
+
+
+class U3DarslikDetailView(LoginRequiredMixin, DetailView):
+    model = Darslik
+    template_name = 'kategoriya/users/Darsliklar/u3_darsliklar_detail.html'
+    context_object_name = 'darslik'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va darslik LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu darslikni ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Darslik: {self.object.title}"
+        return context
+
+
+class U3QollanmaListView(LoginRequiredMixin, ListView):
+    model = Qollanma
+    template_name = 'kategoriya/users/Qollanmalar/u3_qollanmalar.html'
+    context_object_name = 'qollanmalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali qo‘llanmalarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Qo‘llanmalar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        qollanmalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(qollanmalar, self.paginate_by)
+
+        try:
+            qollanmalar = paginator.page(page)
+        except PageNotAnInteger:
+            qollanmalar = paginator.page(1)
+        except EmptyPage:
+            qollanmalar = paginator.page(paginator.num_pages)
+
+        context['qollanmalar'] = qollanmalar
+        return context
+
+
+class U3QollanmaDetailView(LoginRequiredMixin, DetailView):
+    model = Qollanma
+    template_name = 'kategoriya/users/Qollanmalar/u3_qollanmalar_detail.html'
+    context_object_name = 'qollanma'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va qollanma LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu qo‘llanmani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Qo‘llanma: {self.object.title}"
+        return context
+
+
+class U3LoyihaListView(LoginRequiredMixin, ListView):
+    model = Loyiha
+    template_name = 'kategoriya/users/Loyihalar/u3_loyihalar.html'
+    context_object_name = 'loyihalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali loyihalarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Loyihalar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        loyihalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(loyihalar, self.paginate_by)
+
+        try:
+            loyihalar = paginator.page(page)
+        except PageNotAnInteger:
+            loyihalar = paginator.page(1)
+        except EmptyPage:
+            loyihalar = paginator.page(paginator.num_pages)
+
+        context['loyihalar'] = loyihalar
+        return context
+
+
+class U3LoyihaDetailView(LoginRequiredMixin, DetailView):
+    model = Loyiha
+    template_name = 'kategoriya/users/Loyihalar/u3_loyihalar_detail.html'
+    context_object_name = 'loyiha'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va loyiha LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu loyihani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Loyiha: {self.object.title}"
+        return context
+
+
+class U3JurnalListView(LoginRequiredMixin, ListView):
+    model = Jurnal
+    template_name = 'kategoriya/users/Jurnallar/u3_jurnallar.html'
+    context_object_name = 'jurnallar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali jurnallarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Jurnallar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        jurnallar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(jurnallar, self.paginate_by)
+
+        try:
+            jurnallar = paginator.page(page)
+        except PageNotAnInteger:
+            jurnallar = paginator.page(1)
+        except EmptyPage:
+            jurnallar = paginator.page(paginator.num_pages)
+
+        context['jurnallar'] = jurnallar
+        return context
+
+
+class U3JurnalDetailView(LoginRequiredMixin, DetailView):
+    model = Jurnal
+    template_name = 'kategoriya/users/Jurnallar/u3_jurnallar_detail.html'
+    context_object_name = 'jurnal'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va jurnal LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu jurnalni ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Jurnal: {self.object.title}"
+        return context
+
+
+class U3MaqolaListView(LoginRequiredMixin, ListView):
+    model = Maqola
+    template_name = 'kategoriya/users/Maqolalar/u3_maqolalar.html'
+    context_object_name = 'maqolalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali maqolalarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Maqolalar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        maqolalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(maqolalar, self.paginate_by)
+
+        try:
+            maqolalar = paginator.page(page)
+        except PageNotAnInteger:
+            maqolalar = paginator.page(1)
+        except EmptyPage:
+            maqolalar = paginator.page(paginator.num_pages)
+
+        context['maqolalar'] = maqolalar
+        return context
+
+
+class U3MaqolaDetailView(LoginRequiredMixin, DetailView):
+    model = Maqola
+    template_name = 'kategoriya/users/Maqolalar/u3_maqolalar_detail.html'
+    context_object_name = 'maqola'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va maqola LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu maqolani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Maqola: {self.object.title}"
+        return context
+
+
+class U3TajribaListView(LoginRequiredMixin, ListView):
+    model = Xorijiy_Tajriba
+    template_name = 'kategoriya/users/Xorijiy_Tajribalar/u3_tajribalar.html'
+    context_object_name = 'tajribalar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali tajribalarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Xorijiy Tajribalar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        tajribalar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(tajribalar, self.paginate_by)
+
+        try:
+            tajribalar = paginator.page(page)
+        except PageNotAnInteger:
+            tajribalar = paginator.page(1)
+        except EmptyPage:
+            tajribalar = paginator.page(paginator.num_pages)
+
+        context['tajribalar'] = tajribalar
+        return context
+
+
+class U3TajribaDetailView(LoginRequiredMixin, DetailView):
+    model = Xorijiy_Tajriba
+    template_name = 'kategoriya/users/Xorijiy_Tajribalar/u3_tajriba_detail.html'
+    context_object_name = 'tajriba'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va tajriba LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu tajribani ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Xorijiy Tajriba: {self.object.title}"
+        return context
+
+
+class U3OtherListView(LoginRequiredMixin, ListView):
+    model = Other
+    template_name = 'kategoriya/users/Boshqalar/u3_otherlar.html'
+    context_object_name = 'otherlar'
+    paginate_by = 8
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+
+        search_query = self.request.GET.get('search', '').strip()
+
+        # User3 uchun faqat LEVEL3 darajali "Other" ma'lumotlarni filtrlaymiz
+        if user.role == 'user3':
+            queryset = queryset.filter(degree='LEVEL3')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(institution_name__icontains=search_query)
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Boshqa Ma\'lumotlar Roʻyxati (User3)'
+        context['search_query'] = self.request.GET.get('search', '')
+
+        # Sahifalashni qo‘lda qo‘shish
+        otherlar = self.get_queryset()
+        page = self.request.GET.get('page')
+        paginator = Paginator(otherlar, self.paginate_by)
+
+        try:
+            otherlar = paginator.page(page)
+        except PageNotAnInteger:
+            otherlar = paginator.page(1)
+        except EmptyPage:
+            otherlar = paginator.page(paginator.num_pages)
+
+        context['otherlar'] = otherlar
+        return context
+
+
+class U3OtherDetailView(LoginRequiredMixin, DetailView):
+    model = Other
+    template_name = 'kategoriya/users/Boshqalar/u3_other_detail.html'
+    context_object_name = 'other'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset=queryset)
+        user = self.request.user
+
+        # Agar user3 va "Other" ma'lumot LEVEL3 bo‘lmasa, kirishni taqiqlash
+        if user.role == 'user3' and obj.degree != 'LEVEL3':
+            messages.error(self.request, "Sizda ushbu ma'lumotni ko‘rish huquqi yo‘q.")
+            return redirect(reverse('allow'))  # 'allow' sahifasiga yo‘naltirish
+
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Boshqa Ma'lumot: {self.object.title}"
+        return context
 
 
 class U2DissertatsiyaListView(LoginRequiredMixin, ListView):

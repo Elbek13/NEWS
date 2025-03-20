@@ -10,10 +10,10 @@ from .utils import get_redirect_url
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.core.cache import cache
-
+from django.db.models import Q
 
 @csrf_exempt
-def sayt(request):
+def user3(request):
     return render(request, 'users/user3.html')
 
 
@@ -633,7 +633,9 @@ def user3_list(request):
     limit = min(max(int(limit), 1), 50) if str(limit).isdigit() else 10  # Maksimum 50
 
     # User3 rolidagi va kutish holatidagi foydalanuvchilarni olish
-    users = User.objects.filter(role='user3', user_status='waiting').order_by('-created_at')
+    users = User.objects.filter(
+        Q(role='user3') | Q(user_status='waiting')
+    ).order_by('-created_at')
 
     # Agar joriy foydalanuvchi moderator bo‘lsa, faqat o‘z filialidagi user3’larni ko‘rsin
     if request.user.role == 'moderator' and request.user.branch:
